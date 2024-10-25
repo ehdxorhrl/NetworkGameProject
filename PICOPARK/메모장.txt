@@ -1,0 +1,68 @@
+		block[0].Load(L"블럭1.png");
+		block[1].Load(L"블럭2.png");
+		block[2].Load(L"블럭3.png");
+		block[3].Load(L"블럭4.png");
+		block[4].Load(L"닫은문.png");
+		block[5].Load(L"열린문.png");
+		block[6].Load(L"빨간스위치O.png");
+		block[7].Load(L"빨간스위치X.png");
+		block[8].Load(L"초록스위치O.png");
+		block[9].Load(L"초록스위치X.png");
+		block[10].Load(L"파란스위치O.png");
+		block[11].Load(L"파란스위치X.png");
+		block[12].Load(L"열쇠.png");
+		block[13].Load(L"대포.png");
+		block[14].Load(L"총알2.png");
+		block[15].Load(L"총알1.png");
+
+//0=11, 1=12, 2=21, 3=22, 4=23, 5=31, 6=32, 7=33
+
+
+1.스위치 사이즈 충돌체크를 100 100 -> 40 40/ 카운트넣어서 눌러져있다가 플레이어가
+없으면 1초뒤에 다시 올라가는, 올라가야만 다시 누를 수 있게
+스위치 사이즈 최대값 최소값
+2. 양 옆체크
+3. 우리가 맵 왼쪽끝이랑 오른쪽끝 설정해야 스테이지넘어갈때 얘네들이 안떨어져
+
+0
+
+
+
+
+
+4. 얘네 점프할때 위에 밟도록하고, 밟은상태에서도 왼쪽 오른쪽 갈 ㅜㅅ 있게
+
+
+
+스테이지2
+
+		//+ 버튼
+		//map21[2][6].type = 6;
+		map21[2][6].type = 7;
+		map21[2][6].select = true;
+		//- 버튼
+		//map21[3][6].type = 10;
+		map21[3][6].type = 11;
+		map21[3][6].select = true;
+
+		//맵 2-2
+		
+		//열쇠
+		map22[4][1].type = 12;
+		map22[4][1].select = true;
+
+
+		//맵 2-3
+		
+		//열쇠먹으면 생기는 블록
+		map23[5][4].type = 1;
+		map23[4][5].type = 1;
+		map23[3][6].type = 1;
+
+		map23[5][4].select = true;
+		map23[4][5].select = true;
+		map23[3][6].select = true;
+
+		//문
+		map23[7][2].type = 4;
+		map23[7][2].select = true;
