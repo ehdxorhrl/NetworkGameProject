@@ -62,7 +62,5 @@ $RECYCLE.BIN/
 *.lnk
 
 ##files
-**/*.vcxproj
-**/*.vcxproj.*
 **.*.i
 # End of https://www.toptal.com/developers/gitignore/api/c++,windows
