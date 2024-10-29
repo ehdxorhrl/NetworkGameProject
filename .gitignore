@@ -62,7 +62,6 @@ $RECYCLE.BIN/
 *.lnk
 
 ##files
-*.sln
 **/*.vcxproj
 **/*.vcxproj.*
 **.*.i
