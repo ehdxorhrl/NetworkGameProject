@@ -1,4 +1,9 @@
 #include "stdafx.h"
+#include "CScene.h"
+#include "Intro.h"        // Intro 클래스 헤더 파일
+#include "MainScene.h"    // MainScene 클래스 헤더 파일
+#include "Stage1.h"
+#include "EndingScene.h"  // EndingScene 클래스 헤더 파일
 
 void SceneManager::Init()
 {
@@ -9,24 +14,24 @@ void SceneManager::Init()
 	nScene = new Intro();
 	nSceneType = SceneType::Intro;
 
-	_scene = nScene;
-	_sceneType = nSceneType;
+	scene = nScene;
+	sceneType = nSceneType;
 	nScene->Init();
 }
 
 
 void SceneManager::Update()
 {
-	if(_scene)
-		_scene->Update();
-	if (_scene->IsSceneChangeRequired())
+	if(scene)
+		scene->Update();
+	if (scene->IsSceneChangeRequired())
 		ChangeScene();
 }
 
 void SceneManager::Render(HDC hdc)
 {
-	if (_scene)
-		_scene->Render(hdc);
+	if (scene)
+		scene->Render(hdc);
 }
 
 void SceneManager::Clear()
@@ -38,24 +43,26 @@ void SceneManager::ChangeScene()
 	CScene* nScene = nullptr;
 	SceneType nSceneType = SceneType::None;
 
-	switch (_sceneType)
+	switch (sceneType)
 	{
 	case SceneType::Intro:
-		nScene = new MainScene();
-		nSceneType = SceneType::Main;
+		//nScene = new MainScene();
+		//nSceneType = SceneType::Main;
+		nScene = new Stage1();
+		nSceneType = SceneType::Stage1;
 		break;
-	case SceneType::Main:
+	case SceneType::Stage1:
 		nScene = new EndingScene();
 		nSceneType = SceneType::Ending;
 		break;
 	}
 
-	if (_scene) {
-		delete _scene;
-		_scene = nullptr;
+	if (scene) {
+		delete scene;
+		scene = nullptr;
 	}
 
-	_scene = nScene;
-	_sceneType = nSceneType;
+	scene = nScene;
+	sceneType = nSceneType;
 	nScene->Init();
 }

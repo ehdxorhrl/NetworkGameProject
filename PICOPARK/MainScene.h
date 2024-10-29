@@ -1,4 +1,5 @@
 #pragma once
+#include "CScene.h"
 
 class MainScene :public CScene
 {

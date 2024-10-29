@@ -21,7 +21,6 @@
 #pragma comment(lib, "winmm.lib")
 
 const int NUM_PLAYERS = 2;
-const int BLOCKCNT = 16;
 const int MAPSIZE = 800;
 const int CANNON_SIZE = 25;
 
@@ -38,11 +37,7 @@ extern std::uniform_int_distribution<int> dis2;
 #include "resource.h"
 #include "TimeManager.h"
 #include "InputManager.h"
-#include "CScene.h"
-#include "Intro.h"
-#include "MainScene.h"
-#include "EndingScene.h"
 #include "SceneManager.h"
-#include "CGameloop.h"
+
 #include "CObject.h"
 

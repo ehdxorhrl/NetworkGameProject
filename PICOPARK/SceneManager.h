@@ -11,6 +11,8 @@ enum class SceneType
 	Ending
 };
 
+class CScene;
+
 class SceneManager
 {
 public:
@@ -41,6 +43,6 @@ private:
     SceneManager() = default;
     ~SceneManager() = default;
 
-    CScene* _scene = nullptr;
-    SceneType _sceneType = SceneType::None;
+    CScene* scene = nullptr;
+    SceneType sceneType = SceneType::None;
 };

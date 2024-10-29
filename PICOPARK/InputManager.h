@@ -2,17 +2,15 @@
 
 enum class KeyType
 {
-	LeftMouse = VK_LBUTTON,
+	Left_Mouse = VK_LBUTTON,
 
 	Up = VK_UP,
 	Down = VK_DOWN,
 	Left = VK_LEFT,
 	Right = VK_RIGHT,
 
-	W = 'W',
-	A = 'A',
-	S = 'S',
-	D = 'D'
+	R = 'R',
+	r = 'r'
 };
 
 enum class KeyState
@@ -47,16 +45,16 @@ public:
 
 	void Init(HWND hwnd);
 	void Update();
-	bool IsKeyDown(int key) { return _states[key] == KeyState::Down || _states[key] == KeyState::Press; }
+	bool IsKeyDown(int key) { return states[key] == KeyState::Down || states[key] == KeyState::Press; }
 	bool GetButton(KeyType key) { return GetState(key) == KeyState::Press; }
 	bool GetButtonDown(KeyType key) { return GetState(key) == KeyState::Down; }
 	bool GetButtonUp(KeyType key) { return GetState(key) == KeyState::Up; }
-	POINT GetMousePos() { return _mousePos; }
+	POINT GetMousePos() { return mousePos; }
 private:
-	KeyState GetState(KeyType key) { return _states[static_cast<uint8_t>(key)]; }
+	KeyState GetState(KeyType key) { return states[static_cast<uint8_t>(key)]; }
 private:
-	HWND _hwnd;
-	vector<KeyState> _states;
-	POINT _mousePos;
+	HWND hwnd;
+	vector<KeyState> states;
+	POINT mousePos;
 }; 
 

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "EndingScene.h"
 
 EndingScene::EndingScene()
 {
@@ -11,7 +12,7 @@ EndingScene::~EndingScene()
 void EndingScene::Init()
 {
 	Background.Load(L"End.png");
-	_elapsedTime = 0;
+	elapsedTime = 0;
     shouldChangeScene = false;
 }
 
@@ -19,11 +20,11 @@ void EndingScene::Update()
 {
     float deltaTime = TimeManager::GetInstance().GetDeltaTime();
 
-    _elapsedTime += deltaTime;
+    elapsedTime += deltaTime;
 
-    if (_elapsedTime >= 5.0f) { 
+    if (elapsedTime >= 5.0f) { 
         shouldChangeScene = true;
-        _elapsedTime = 0.f;
+        elapsedTime = 0.f;
     }
 }
 

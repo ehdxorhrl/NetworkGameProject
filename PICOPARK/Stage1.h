@@ -1,17 +1,17 @@
 #pragma once
 #include "CScene.h"
+#include "CPlayer.h"
 
-class EndingScene : public CScene
+class Stage1 :public CScene
 {
 public:
-	EndingScene();
-	~EndingScene() override;
+	Stage1();
+	~Stage1() override;
 
 	void Init() override;
 	void Update() override;
 	void Render(HDC hdc) override;
 private:
-	CImage Background;
-	float elapsedTime;
+	CPlayer* player = nullptr;
 };
 

@@ -9,11 +9,11 @@ public:
 	void Init(HWND hWnd);
 	void Update();
 	void Render();
-	HDC GetHDC() const { return _hdc; }
+	HDC GetHDC() const { return hdc; }
 private:
-	HWND _hwnd{};
-	HDC _hdc{};
-	TimeManager& _timeManager = TimeManager::GetInstance();
-	InputManager& _inputManager = InputManager::GetInstance();
-	SceneManager& _SceneManager = SceneManager::GetInstance();
+	HWND hwnd{};
+	HDC hdc{};
+	TimeManager& timeManager = TimeManager::GetInstance();
+	InputManager& inputManager = InputManager::GetInstance();
+	SceneManager& SceneManager = SceneManager::GetInstance();
 };
