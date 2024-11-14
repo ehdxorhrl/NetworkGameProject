@@ -6,6 +6,17 @@
 
 CRITICAL_SECTION cs; // 스레드 동기화를 위한 변수 및 객체 접근을 보호하기 위해 사용
 
+bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePacket)
+{
+	int retval;
+	
+	retval = send(sock, (char*)&responsePacket, sizeof(responsePacket), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send error");
+	}
+}
+
 DWORD WINAPI UpdateThreadFunc(LPVOID lpParam)
 {
 	EnterCriticalSection(&cs);
@@ -16,6 +27,10 @@ DWORD WINAPI UpdateThreadFunc(LPVOID lpParam)
 	}
 
 	LeaveCriticalSection(&cs);
+}
+
+DWORD WINAPI CommunicationThread(LPVOID lpParam) {
+
 }
 
 int main(int argc, char* argv[])
@@ -68,9 +83,9 @@ int main(int argc, char* argv[])
 			break;
 		}
 
-		/*
+		
 		// 스레드 생성
-		hThread = CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock, 0, NULL);
+		hThread = CreateThread(NULL, 0, CommunicationThread, (LPVOID)client_sock, 0, NULL);
 		if (hThread == NULL)
 		{
 			closesocket(client_sock);
@@ -79,7 +94,7 @@ int main(int argc, char* argv[])
 		{
 			CloseHandle(hThread);
 		}
-		*/
+		
 
 	}
 
