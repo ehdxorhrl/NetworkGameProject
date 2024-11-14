@@ -55,9 +55,30 @@
 bool HandlePlayerIDRequest(SOCKET& clientSock) {
     PlayerIDResponsePacket responsePacket;
     responsePacket.packetType = 1; // 응답 패킷
-    responsePacket.playerID = rand() % 1000; // 임의의 ID 할당 (예시)
+    responsePacket.playerID = rand() % 1000; // 임의의 ID 할당
 
     return SendPlayerIDResponse(clientSock, responsePacket);
+}
+
+bool SendPlayerIDRequest(SOCKET& sock) {
+    PlayerIDRequestPacket requestPacket;
+    requestPacket.packetType = 0; // 요청 패킷
+
+    int retval = send(sock, (char*)&requestPacket, sizeof(requestPacket), 0);
+    if (retval == SOCKET_ERROR) {
+        err_display("SendPlayerIDRequest Error");
+        return false;
+    }
+    return true;
+}
+
+bool HandlePlayerIDResponsePacket(const PlayerIDResponsePacket& packet) {
+    if (packet.packetType != 1) {
+        printf("Invalid packet type\\n");
+        return false;
+    }
+    printf("Received Player ID: %d\\n", packet.playerID);
+    return true;
 }
 
 bool SendPlayerIDRequest(SOCKET& sock) {
