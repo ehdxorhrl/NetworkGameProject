@@ -1,0 +1,3 @@
+﻿  MainServer.cpp
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\Server\Server\MainServer.cpp(50,9): warning C4101: 'hThread' :참조되지 않은 지역 변수입니다.
+  Server.vcxproj -> C:\Users\Byungil\Documents\GitHub\NetworkGameProject\Server\x64\Debug\Server.exe
