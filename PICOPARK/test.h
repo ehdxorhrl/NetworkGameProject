@@ -92,3 +92,24 @@ bool SendPlayerIDRequest(SOCKET& sock) {
     }
     return true;
 }
+
+bool SendPacket(SOCKET& sock, const void* packetData, int packetSize) {
+    if (sock == INVALID_SOCKET || packetData == nullptr || packetSize <= 0) {
+        cerr << "SendPacket: Invalid parameters" << endl;
+        return false;
+    }
+
+    int totalBytesSent = 0;
+    const char* dataPtr = static_cast<const char*>(packetData);
+
+    while (totalBytesSent < packetSize) {
+        int bytesSent = send(sock, dataPtr + totalBytesSent, packetSize - totalBytesSent, 0);
+        if (bytesSent == SOCKET_ERROR) {
+            cerr << "SendPacket: Error during send() - " << WSAGetLastError() << endl;
+            return false;
+        }
+        totalBytesSent += bytesSent;
+    }
+
+    return true;
+}
