@@ -5,6 +5,8 @@
 #define BUFSIZE    512
 
 CRITICAL_SECTION cs; // 스레드 동기화를 위한 변수 및 객체 접근을 보호하기 위해 사용
+std::queue<int> RecvQueue;
+std::queue<int> SendQueue;
 
 bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePacket)
 {
@@ -17,16 +19,40 @@ bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePa
 	}
 }
 
+void ProcessTempQueue(std::queue<int>& tempQueue) {
+	while (!tempQueue.empty()) {
+		int item = tempQueue.front();
+		tempQueue.pop();
+	}
+}
+
 DWORD WINAPI UpdateThreadFunc(LPVOID lpParam)
 {
-	EnterCriticalSection(&cs);
-
 	while (true)
 	{
+		EnterCriticalSection(&cs);
 
+		if (!RecvQueue.empty()) {
+			std::queue<int> TempQueue = RecvQueue;
+
+			RecvQueue = {};
+			LeaveCriticalSection(&cs);
+			ProcessTempQueue(TempQueue);
+
+			EnterCriticalSection(&cs);
+		}
+
+		if (!SendQueue.empty()) {
+			while (!SendQueue.empty()) {
+				int dataToSend = SendQueue.front();
+				SendQueue.pop();
+			}
+		}
+
+		LeaveCriticalSection(&cs);
 	}
-
-	LeaveCriticalSection(&cs);
+	
+	return 0;
 }
 
 DWORD WINAPI CommunicationThread(LPVOID lpParam) {
