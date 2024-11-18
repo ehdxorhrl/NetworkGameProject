@@ -1,6 +1,7 @@
 #pragma once
 
 #define _CRT_SECURE_NO_WARNINGS
+#include <winsock2.h>
 #include <windows.h> //--- 윈도우 헤더 파일
 #include <iostream>
 #include <sstream>

@@ -29,16 +29,16 @@ void CPlayer::Render(HDC hdc)
 void CPlayer::Init()
 {
 	if (Ptype == PlayerType::P1) {
-		PImage[0].Load(L"차렷1.jpg"); // 차렷 이미지
-		PImage[1].Load(L"이동1.jpg"); // 이동 이미지
-		PImage[2].Load(L"점프1.jpg"); // 점프 이미지
-		PImage[3].Load(L"죽음1.png"); // 죽음 이미지
+		PImage[0].Load(L"assets/차렷1.jpg"); // 차렷 이미지
+		PImage[1].Load(L"assets/이동1.jpg"); // 이동 이미지
+		PImage[2].Load(L"assets/점프1.jpg"); // 점프 이미지
+		PImage[3].Load(L"assets/죽음1.png"); // 죽음 이미지
 	}
 	else {
-		PImage[0].Load(L"차렷2.jpg"); // 차렷 이미지
-		PImage[1].Load(L"이동2.jpg"); // 이동 이미지
-		PImage[2].Load(L"점프2.jpg"); // 점프 이미지
-		PImage[3].Load(L"죽음2.png"); // 죽음 이미지
+		PImage[0].Load(L"assets/차렷2.jpg"); // 차렷 이미지
+		PImage[1].Load(L"assets/이동2.jpg"); // 이동 이미지
+		PImage[2].Load(L"assets/점프2.jpg"); // 점프 이미지
+		PImage[3].Load(L"assets/죽음2.png"); // 죽음 이미지
 	}
 
 	x = 400, y = 400;

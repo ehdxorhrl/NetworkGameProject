@@ -11,7 +11,7 @@ EndingScene::~EndingScene()
 
 void EndingScene::Init()
 {
-	Background.Load(L"End.png");
+	Background.Load(L"assets/End.png");
 	elapsedTime = 0;
     shouldChangeScene = false;
 }
