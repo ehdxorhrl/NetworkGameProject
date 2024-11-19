@@ -113,3 +113,19 @@ bool SendPacket(SOCKET& sock, const void* packetData, int packetSize) {
 
     return true;
 }
+
+bool SendGTimePacket(SOCKET& sock, const GTime_Packet& gTimePacket) {
+    // 패킷 데이터를 버퍼로 복사
+    char buffer[sizeof(GTime_Packet)];
+    memcpy(buffer, &gTimePacket, sizeof(GTime_Packet));
+
+    // 데이터 전송
+    int bytesSent = send(sock, buffer, sizeof(GTime_Packet), 0);
+    if (bytesSent == SOCKET_ERROR) {
+        std::cerr << "send() failed: " << WSAGetLastError() << std::endl;
+        return false;
+    }
+
+    // 전송 성공
+    return true;
+}
