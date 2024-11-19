@@ -114,6 +114,40 @@ bool SendPacket(SOCKET& sock, const void* packetData, int packetSize) {
     return true;
 }
 
+bool ReceivePacket(SOCKET& sock, void* buffer, int bufferSize)
+{
+    if (buffer == nullptr || bufferSize <= 0)
+    {
+        std::cerr << "Invalid buffer or buffer size." << std::endl;
+        return false;
+    }
+
+    int totalBytesReceived = 0; // 총 수신된 바이트 수
+    int bytesReceived = 0;
+
+    while (totalBytesReceived < bufferSize)
+    {
+        // 수신 호출
+        bytesReceived = recv(sock, static_cast<char*>(buffer) + totalBytesReceived, bufferSize - totalBytesReceived, 0);
+
+        if (bytesReceived == SOCKET_ERROR)
+        {
+            std::cerr << "Error receiving data. Error Code: " << WSAGetLastError() << std::endl;
+            return false; // 오류 발생
+        }
+
+        if (bytesReceived == 0)
+        {
+            std::cerr << "Connection closed by peer." << std::endl;
+            return false; // 연결 종료
+        }
+
+        totalBytesReceived += bytesReceived;
+    }
+
+    return true; // 성공적으로 패킷 수신
+}
+
 bool SendGTimePacket(SOCKET& sock, const GTime_Packet& gTimePacket) {
     // 패킷 데이터를 버퍼로 복사
     char buffer[sizeof(GTime_Packet)];
@@ -129,3 +163,4 @@ bool SendGTimePacket(SOCKET& sock, const GTime_Packet& gTimePacket) {
     // 전송 성공
     return true;
 }
+
