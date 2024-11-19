@@ -4,9 +4,24 @@
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
-CRITICAL_SECTION cs; // 스레드 동기화를 위한 변수 및 객체 접근을 보호하기 위해 사용
+CRITICAL_SECTION cs;
+CRITICAL_SECTION cs2;
 std::queue<int> RecvQueue;
 std::queue<int> SendQueue;
+
+bool SendInputPacket(SOCKET& sock, const Input_Packet& inputPacket)
+{
+	int retval;
+
+	retval = send(sock, (char*)&inputPacket, sizeof(inputPacket), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send error");
+	}
+
+	return true;
+
+}
 
 bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePacket)
 {
@@ -17,6 +32,8 @@ bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePa
 	{
 		err_display("send error");
 	}
+
+	return true;
 }
 
 void ProcessTempQueue(std::queue<int>& tempQueue) {
@@ -39,7 +56,7 @@ DWORD WINAPI UpdateThreadFunc(LPVOID lpParam)
 			LeaveCriticalSection(&cs);
 			ProcessTempQueue(TempQueue);
 
-			EnterCriticalSection(&cs);
+			EnterCriticalSection(&cs2);
 		}
 
 		if (!SendQueue.empty()) {
@@ -49,7 +66,7 @@ DWORD WINAPI UpdateThreadFunc(LPVOID lpParam)
 			}
 		}
 
-		LeaveCriticalSection(&cs);
+		LeaveCriticalSection(&cs2);
 	}
 	
 	return 0;
