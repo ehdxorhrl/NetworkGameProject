@@ -97,18 +97,3 @@ struct EndGame_Packet
 	bool isGameEnded;
 };
 
-///////////////////////////////////////////////////////
-
-struct Input_Packet
-{
-	uint8_t packetType = 1;
-	SceneType m_scene;
-	uint32_t m_playerID;
-	KeyType inputType;
-	KeyState inputState;
-};
-
-struct PlayerIDRequest_Packet
-{
-	uint8_t packetType;
-};

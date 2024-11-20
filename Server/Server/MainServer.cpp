@@ -9,20 +9,6 @@ CRITICAL_SECTION cs2;
 std::queue<int> RecvQueue;
 std::queue<int> SendQueue;
 
-bool SendInputPacket(SOCKET& sock, const Input_Packet& inputPacket)
-{
-	int retval;
-
-	retval = send(sock, (char*)&inputPacket, sizeof(inputPacket), 0);
-	if (retval == SOCKET_ERROR)
-	{
-		err_display("send error");
-	}
-
-	return true;
-
-}
-
 bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePacket)
 {
 	int retval;

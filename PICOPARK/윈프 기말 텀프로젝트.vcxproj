@@ -157,6 +157,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Intro.h" />
     <ClInclude Include="MainScene.h" />
+    <ClInclude Include="Packet.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Stage1.h" />

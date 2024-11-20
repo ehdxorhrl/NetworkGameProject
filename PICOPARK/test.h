@@ -48,3 +48,17 @@ enum CMap
 	Map3_1,
 	Map3_2
 };
+
+bool SendInputPacket(SOCKET& sock, const Input_Packet& inputPacket)
+{
+	int retval;
+
+	retval = send(sock, (char*)&inputPacket, sizeof(inputPacket), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send error");
+	}
+
+	return true;
+
+}
