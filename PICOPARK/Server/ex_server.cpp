@@ -1,18 +1,18 @@
+#include <winsock2.h>
 #include <iostream>
 #include <queue>
 #include <cstdint>
-#include <winsock2.h>
 #include <windows.h>
 #include <vector>
-#include "Packet.h" // Ensure this header contains all necessary packet types
+#include "Packet.h"
+#pragma comment(lib, "ws2_32.lib")
 
 CRITICAL_SECTION recvQueueCS;
 CRITICAL_SECTION sendQueueCS;
 
-std::queue<void*> RecvQueue; // Generic queue for different packet types
+std::queue<void*> RecvQueue;
 std::queue<ObjectInfo_Packet> SendQueue;
 
-// Function to identify packet type and return the correct size
 size_t GetPacketSize(uint8_t packetType) {
     switch (packetType) {
     case 1: return sizeof(Input_Packet);

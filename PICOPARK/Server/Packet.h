@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <cstdint>
 #include <vector>
-#include "CObject.h"
+//#include "CObject.h"
 
 enum class PlayerState
 {
