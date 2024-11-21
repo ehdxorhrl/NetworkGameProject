@@ -53,7 +53,12 @@ bool SendInputPacket(SOCKET& sock, const Input_Packet& inputPacket)
 {
 	int retval;
 
-	retval = send(sock, (char*)&inputPacket, sizeof(inputPacket), 0);
+	const size_t packetSize = sizeof(Input_Packet);
+	char buffer[packetSize];
+
+	memcpy(buffer, &inputPacket, packetSize);
+
+	retval = send(sock, buffer, packetSize, 0);
 	if (retval == SOCKET_ERROR)
 	{
 		err_display("send error");

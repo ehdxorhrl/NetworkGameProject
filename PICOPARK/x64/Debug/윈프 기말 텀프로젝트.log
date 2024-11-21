@@ -1,0 +1,28 @@
+﻿  CGameloop.cpp
+  CObject.cpp
+  CPlayer.cpp
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.h(4,36): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(15,41): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(15,30): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(17,39): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(17,25): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(19,39): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(19,25): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(23,40): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(23,26): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(25,40): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.cpp(25,26): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  CScene.cpp
+  EndingScene.cpp
+  InputManager.cpp
+  Intro.cpp
+  main.cpp
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\main.cpp(50,16): warning C4244: 'return': 'WPARAM'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  MainScene.cpp
+  SceneManager.cpp
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.h(4,36): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+  Stage1.cpp
+C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\CPlayer.h(4,36): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+  TimeManager.cpp
+  코드를 생성하고 있습니다...
+  윈프 기말 텀프로젝트.vcxproj -> C:\Users\Byungil\Documents\GitHub\NetworkGameProject\PICOPARK\x64\Debug\윈프 기말 텀프로젝트.exe

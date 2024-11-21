@@ -1,7 +1,7 @@
 #include "framework.h"
 #include "Packet.h"
 
-#define SERVERPORT 9000
+#define SERVERPORT 9898
 #define BUFSIZE    512
 
 CRITICAL_SECTION cs;
