@@ -164,3 +164,21 @@ bool SendGTimePacket(SOCKET& sock, const GTime_Packet& gTimePacket) {
     return true;
 }
 
+bool SetSocketTimeout(SOCKET& sock, int timeoutInSeconds) {
+    // 타임아웃 값을 밀리초 단위로 변환
+    int timeoutInMillis = timeoutInSeconds * 1000;
+
+    // recv() 타임아웃 설정
+    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutInMillis, sizeof(timeoutInMillis)) == SOCKET_ERROR) {
+        std::cerr << "Failed to set recv timeout: " << WSAGetLastError() << std::endl;
+        return false;
+    }
+
+    // send() 타임아웃 설정
+    if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutInMillis, sizeof(timeoutInMillis)) == SOCKET_ERROR) {
+        std::cerr << "Failed to set send timeout: " << WSAGetLastError() << std::endl;
+        return false;
+    }
+
+    return true;
+}
