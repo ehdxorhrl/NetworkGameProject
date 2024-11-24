@@ -9,6 +9,8 @@ enum class KeyType
 	Left = VK_LEFT,
 	Right = VK_RIGHT,
 
+	Space = VK_SPACE,
+
 	R = 'R',
 	r = 'r'
 };

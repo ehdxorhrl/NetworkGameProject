@@ -41,7 +41,10 @@ void CGameloop::Render()
     Rectangle(mdc, 0, 0, rt.right, rt.bottom);
 
     // 씬 매니저 렌더링
-    SceneManager.Render(mdc);
+    if (&SceneManager) {
+        SceneManager.Render(mdc);
+        OutputDebugString(L"SceneManager::Render called\n");
+    }
 
     // 백 버퍼의 내용을 화면에 복사
     BitBlt(hdc, 0, 0, rt.right, rt.bottom, mdc, 0, 0, SRCCOPY);

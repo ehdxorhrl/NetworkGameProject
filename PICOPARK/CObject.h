@@ -1,4 +1,5 @@
 #pragma once
+#include "stdafx.h"
 
 enum class ObjectType
 {
@@ -18,17 +19,44 @@ enum class ObjectType
 	Green_Switch  // 밟으면 블럭이 나타나는 스위치
 };
 
+struct Position {
+	float x = 0.0f;
+	float y = 0.0f;
+
+	Position() = default;
+	Position(float _x, float _y) : x(_x), y(_y) {}
+
+	Position operator+(const Position& other) const {
+		return Position(x + other.x, y + other.y);
+	}
+
+	Position operator-(const Position& other) const {
+		return Position(x - other.x, y - other.y);
+	}
+
+	void Set(float _x, float _y) {
+		x = _x;
+		y = _y;
+	}
+};
+
 class CObject
 {
 public:
 	CObject();
 	virtual ~CObject();
+
 	virtual void Init() = 0;
 	virtual void Update() = 0;
 	virtual void Render(HDC hdc) = 0;
+public:
+	ObjectType GetObjectType() { return Otype; }
+	Position GetPos() const { return pos; }
+	void SetPos(const Position& _pos) { pos = _pos; }
+	void SetPos(float _x, float _y) { pos.Set(_x, _y); }
 protected:
 	ObjectType Otype = ObjectType::None;
-	float x = 0, y = 0;
+	Position pos;
 	int size = 0, speed = 0;
 };
 

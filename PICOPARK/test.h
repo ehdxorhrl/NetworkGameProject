@@ -182,3 +182,26 @@ bool SetSocketTimeout(SOCKET& sock, int timeoutInSeconds) {
 
     return true;
 }
+
+//// 서버로부터 데이터 수신
+        //int bytesReceived = recv(g_serverSocket, buffer, sizeof(buffer) - 1, 0);
+        //if (bytesReceived > 0) {
+        //    buffer[bytesReceived] = '\0';  // 수신된 데이터에 null-terminator 추가
+        //
+        //    if (strcmp(buffer, "START") == 0) {
+        //        auto* currentScene = dynamic_cast<LoadingScene*>(SceneManager::GetInstance().GetCurrentScene());
+        //        if (currentScene) {
+        //            currentScene->SetServerSignalReceived(true); // 서버 신호 전달
+        //        }
+        //    }
+        //    //loop.UpdateGameState(buffer);  // 수신된 데이터를 바로 게임 상태에 반영
+        //}
+        //else if (bytesReceived == 0 || bytesReceived == SOCKET_ERROR) {
+        //    break;  // 서버 연결 끊김 또는 오류 발생 시 종료
+        //}
+        //
+        //// SendQueue 없이 바로 데이터를 서버로 전송
+        ////std::string dataToSend = loop.GetDataToSend();  // 전송할 데이터를 게임 로직에서 가져옴
+        ////if (!dataToSend.empty()) {
+        ////    send(g_serverSocket, dataToSend.c_str(), dataToSend.size(), 0);
+        ////}

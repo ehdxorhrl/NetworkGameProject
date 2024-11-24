@@ -3,9 +3,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <winsock2.h>
 #include <windows.h> //--- 윈도우 헤더 파일
+#include <ws2tcpip.h> // inet_pton 및 inet_ntop 사용
 #include <iostream>
 #include <sstream>
-#include <map>
 #include <vector>
 #include <array>
 #include <fstream>
@@ -23,10 +23,10 @@
 
 const int NUM_PLAYERS = 2;
 const int MAPSIZE = 800;
+const int BLOCK_SIZE = 100; // 각 블록의 픽셀 크기
 const int CANNON_SIZE = 25;
 
 using namespace std;
-using std::map;
 using std::vector;
 using std::array;
 
@@ -35,7 +35,9 @@ extern std::mt19937 gen;
 extern std::uniform_int_distribution<int> dis1;
 extern std::uniform_int_distribution<int> dis2;
 
+
 #include "resource.h"
+#include "Packet.h"
 #include "TimeManager.h"
 #include "InputManager.h"
 #include "SceneManager.h"
