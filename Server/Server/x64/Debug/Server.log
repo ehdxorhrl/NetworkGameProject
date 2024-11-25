@@ -1,3 +1,0 @@
-﻿  MainServer.cpp
-C:\Users\Byungil\Documents\GitHub\NetworkGameProject\Server\Server\MainServer.cpp(18): error C4716: 'SendPlayerIDResponse': 값을 반환해야 합니다.
-C:\Users\Byungil\Documents\GitHub\NetworkGameProject\Server\Server\MainServer.cpp(34): error C4716: 'CommunicationThread': 값을 반환해야 합니다.

@@ -6,6 +6,7 @@
 
 CRITICAL_SECTION cs;
 CRITICAL_SECTION cs2;
+
 std::queue<int> RecvQueue;
 std::queue<int> SendQueue;
 
@@ -14,6 +15,24 @@ bool SendPlayerIDResponse(SOCKET& sock, const PlayerIDResponsePacket& responsePa
 	int retval;
 	
 	retval = send(sock, (char*)&responsePacket, sizeof(responsePacket), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send error");
+	}
+
+	return true;
+}
+
+bool SendEndGamePacket(SOCKET& sock, const EndGame_Packet& endGamePacket)
+{
+	int retval;
+
+	const size_t packetSize = sizeof(EndGame_Packet);
+	char buffer[packetSize];
+
+	memcpy(buffer, &endGamePacket, packetSize);
+
+	retval = send(sock, buffer, packetSize, 0);
 	if (retval == SOCKET_ERROR)
 	{
 		err_display("send error");
@@ -95,6 +114,7 @@ int main(int argc, char* argv[])
 
 	// CS 초기화
 	InitializeCriticalSection(&cs);
+	InitializeCriticalSection(&cs2);
 
 	// UpdateThread
 	hUpdateThread = CreateThread(NULL, 0, UpdateThreadFunc, NULL, 0, NULL);
@@ -131,6 +151,7 @@ int main(int argc, char* argv[])
 
 	// CS 삭제
 	DeleteCriticalSection(&cs);
+	DeleteCriticalSection(&cs2);
 
 	// 소켓 닫기
 	closesocket(listen_sock);
