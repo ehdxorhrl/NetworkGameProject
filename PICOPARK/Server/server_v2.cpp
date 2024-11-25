@@ -15,6 +15,7 @@ constexpr size_t BUFFER_SIZE = 1024;
 char playerBuffers[2][BUFFER_SIZE]; // 플레이어 2명의 버퍼
 size_t bufferOffsets[2] = { 0, 0 };  // 각 버퍼의 현재 저장 위치
 int mProcessed[2]{};
+HANDLE startGameEvent;
 
 size_t GetPacketSize(uint8_t packetType) {
     switch (packetType) {
@@ -120,6 +121,9 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
     //int bytesReceived;
     int sizeReceived;
     int dataReceived;
+
+    WaitForSingleObject(startGameEvent, INFINITE);
+    std::cout << "Game start" << std::endl;
 
     while (true) {
         // 데이터 수신
@@ -240,35 +244,57 @@ int main() {
 
     std::cout << "Server is listening on port 8080..." << std::endl;
 
+    int clientCount = 0;
+
     // 각 플레이어에 대해 CriticalSection 초기화
     InitializeCriticalSection(&playerBufferCS[0]);
     InitializeCriticalSection(&playerBufferCS[1]);
 
-    int clientCount = 0;
-    while (clientCount < 1) { // 두 명의 클라이언트만 허용
+    // 이벤트 객체 생성 (초기 상태: 비신호 상태)
+    startGameEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (startGameEvent == NULL) {
+        std::cerr << "CreateEvent failed: " << GetLastError() << std::endl;
+        return 1;
+    }
+    
+    // 클라이언트 대기 루프
+    while (true) {
         clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
         if (clientSocket == INVALID_SOCKET) {
             std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
             continue;
         }
 
-        std::cout << "Player " << clientCount << " connected." << std::endl;
-        auto* params = new std::pair<SOCKET, int>(clientSocket, clientCount);
-        HANDLE hThread = CreateThread(NULL, 0, CommunicationThread, params, 0, NULL);
-        if (hThread == NULL) {
-            std::cerr << "CreateThread failed: " << GetLastError() << std::endl;
-            closesocket(clientSocket);
-            delete params;
-        }
-        //else {
-        //    CloseHandle(hThread);
-        //}
-        clientCount++;
-    }
+        EnterCriticalSection(&playerBufferCS[0]);
+        EnterCriticalSection(&playerBufferCS[1]);
+        if (clientCount < 2) {
+            std::cout << "Player " << clientCount << " connected." << std::endl;
 
+            // 스레드 생성
+            auto* params = new std::pair<SOCKET, int>(clientSocket, clientCount);
+            HANDLE hThread = CreateThread(NULL, 0, CommunicationThread, params, 0, NULL);
+            if (hThread == NULL) {
+                std::cerr << "CreateThread failed: " << GetLastError() << std::endl;
+                closesocket(clientSocket);
+                delete params;
+            }
+            //else {
+            //    CloseHandle(hThread);
+            //}
+
+            clientCount++;
+        }
+        LeaveCriticalSection(&playerBufferCS[0]);
+        LeaveCriticalSection(&playerBufferCS[1]);
+
+        // 클라이언트 2명 연결 되면 대기 종료
+        if (clientCount == 2) {
+            std::cout << "Both Game Start" << std::endl;
+            SetEvent(startGameEvent); // 모든 대기 중인 스레드 실행
+            break;
+        }
+    }
     
-    std::cout << clientCount << std::endl;
-    std::cout << "Game Start" << std::endl;
 
     while (true)
     {
@@ -276,6 +302,8 @@ int main() {
     }
 
     // Cleanup
+    WaitForSingleObject(startGameEvent, INFINITE);
+    CloseHandle(startGameEvent);
     DeleteCriticalSection(&playerBufferCS[0]);
     DeleteCriticalSection(&playerBufferCS[1]);
     closesocket(serverSocket);
