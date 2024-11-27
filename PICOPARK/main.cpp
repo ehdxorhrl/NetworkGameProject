@@ -19,44 +19,70 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 // Communication 스레드 함수 - 수신 데이터를 바로 처리
 DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
-    char buffer[1024];
-
-    // 소켓 타임아웃 설정
-    int timeoutInMillis = 100; // 100ms 타임아웃
-    setsockopt(g_serverSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutInMillis, sizeof(timeoutInMillis));
-    setsockopt(g_serverSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutInMillis, sizeof(timeoutInMillis));
+    char buffer[BUFFER_SIZE];
 
     while (true) {
-        int bytesReceived = recv(g_serverSocket, buffer, sizeof(buffer) - 1, 0);
+        // 서버에서 데이터 수신
+        int bytesReceived = recv(g_serverSocket, buffer, sizeof(buffer), 0);
+
         if (bytesReceived > 0) {
-            buffer[bytesReceived] = '\0';
-            // 받은 데이터 처리
-            OutputDebugStringA(buffer);
-            OutputDebugStringA("\n");
+            uint8_t packetType = buffer[0]; // 첫 바이트는 packetType으로 가정
+            switch (packetType) {
+            case 12: { // PlayerIDResponsePacket
+                if (bytesReceived == sizeof(PlayerIDResponsePacket)) {
+                    PlayerIDResponsePacket idResponse;
+                    memcpy(&idResponse, buffer, sizeof(PlayerIDResponsePacket));
+                    if (idResponse.isSuccess) {
+                        loop.SetID(idResponse.m_playerID);
+                    }
+                    else {
+                        OutputDebugString(L"Failed to receive Player ID.\n");
+                        closesocket(g_serverSocket);
+                        return 1;
+                    }
+                }
+                else {
+                    OutputDebugString(L"Invalid PlayerIDResponsePacket size.\n");
+                }
+                break;
+            }
+            case 102: { // GameStart_Packet
+                if (bytesReceived == sizeof(GameStart_Packet)) {
+                    GameStart_Packet startPacket;
+                    memcpy(&startPacket, buffer, sizeof(GameStart_Packet));
+                    if (startPacket.isGameStarted) {
+                        OutputDebugString(L"Game Start Packet received.\n");
+                        SceneManager& sceneManager = SceneManager::GetInstance();
+                        sceneManager.ChangeScene(); // 씬 전환
+                    }
+                    else {
+                        OutputDebugString(L"Game Start Packet indicates game not started.\n");
+                    }
+                }
+                else {
+                    OutputDebugString(L"Invalid GameStart_Packet size.\n");
+                }
+                break;
+            }
+            default:
+                OutputDebugString(L"Unhandled packet type.\n");
+                break;
+            }
         }
         else if (bytesReceived == 0) {
-            // 서버가 연결을 종료
-            OutputDebugString(L"Server closed connection\n");
+            OutputDebugString(L"Server closed connection.\n");
             break;
         }
         else if (bytesReceived == SOCKET_ERROR) {
             int error = WSAGetLastError();
-            if (error == WSAETIMEDOUT) {
-                // 타임아웃 발생, 계속 루프 유지
-                OutputDebugString(L"Socket recv timeout\n");
-            }
-            else {
-                // 치명적인 소켓 오류 발생
-                std::wstring errorMsg = L"Socket error: " + std::to_wstring(error);
-                OutputDebugString(errorMsg.c_str());
+            if (error != WSAETIMEDOUT) {
+                OutputDebugString(L"Socket error, closing thread.\n");
                 break;
             }
         }
 
-        // 필요한 경우 Sleep으로 CPU 사용량 제어
-        Sleep(1);
+        Sleep(1); // CPU 사용량 제어
     }
-
     return 0;
 }
 
@@ -93,98 +119,85 @@ bool ConnectToServer(const char* serverIP, int port) {
 }
 
 // WinMain 함수
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-    LPSTR lpszCmdParam, int nCmdShow) {
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     HWND hWnd;
-    MSG Message;
-    WNDCLASSEX WndClass;
-    g_hInst = hInstance;
+    MSG msg;
+    WNDCLASSEX wcex;
 
-    gGameStartEvent = CreateEvent(
-        NULL,   // 기본 보안 속성
-        TRUE,   // 수동 재설정 (TRUE: 수동, FALSE: 자동)
-        FALSE,  // 초기 상태는 비신호 상태
-        NULL    // 이벤트 이름 (익명)
-    );
+    wcex.cbSize = sizeof(WNDCLASSEX);
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = nullptr;
+    wcex.lpszClassName = L"GameClass";
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 
-    if (!gGameStartEvent) {
-        MessageBox(NULL, L"이벤트 생성 실패", L"Error", MB_OK);
-        return -1;
+    if (!RegisterClassEx(&wcex)) {
+        MessageBox(nullptr, L"Call to RegisterClassEx failed!", L"Error", NULL);
+        return 1;
     }
-
-    // 기본 IP 및 포트 설정
-    std::string ip = "127.0.0.1";
-    int port = 8080;
-
-    // 명령어 인자 파싱
-    if (lpszCmdParam && strlen(lpszCmdParam) > 0) {
-        std::istringstream iss(lpszCmdParam);
-        if (!(iss >> ip >> port)) {
-            MessageBox(NULL, L"IP 주소와 포트 번호를 올바르게 입력하세요", L"Error", MB_OK);
-            return -1;
-        }
-    }
-
-    WndClass.cbSize = sizeof(WndClass);
-    WndClass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-    WndClass.lpfnWndProc = (WNDPROC)WndProc;
-    WndClass.cbClsExtra = 0;
-    WndClass.cbWndExtra = 0;
-    WndClass.hInstance = hInstance;
-    WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    WndClass.hCursor = LoadCursor(NULL, IDC_HAND);
-    WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    WndClass.lpszMenuName = NULL;
-    WndClass.lpszClassName = lpszClass;
-    WndClass.hIconSm = LoadIcon(NULL, IDI_QUESTION);
-    RegisterClassEx(&WndClass);
-
-    RECT rect = { 0, 0, 800, 800 }; // 원하는 클라이언트 영역 크기
-    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE); // 전체 창 크기 조정
 
     hWnd = CreateWindow(
-        lpszClass, lpszWindowName, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
-        rect.bottom - rect.top, NULL, NULL, hInstance, NULL
+        L"GameClass",
+        L"Game Title",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        800, 600,
+        nullptr,
+        nullptr,
+        hInstance,
+        nullptr
     );
+
+    if (!hWnd) {
+        MessageBox(nullptr, L"Call to CreateWindow failed!", L"Error", NULL);
+        return 1;
+    }
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
-    // 서버 연결
-    if (!ConnectToServer(ip.c_str(), port)) {
-        return -1;
+    CGameloop gameLoop;
+    gameLoop.Init(hWnd);
+
+    // 소켓 연결 설정
+    if (ConnectToServer("127.0.0.1", 9000)) {
+        gameLoop.SetServerSocket(g_serverSocket); // 서버 소켓 전달
     }
 
-    // Communication 스레드 생성
-    DWORD commThreadId;
-    hCommThread = CreateThread(NULL, 0, CommunicationThreadFunc, NULL, 0, &commThreadId);
-    if (hCommThread == NULL) {
-        MessageBox(NULL, L"Communication 스레드 생성 실패", L"Error", MB_OK);
-        return -1;
-    }
+    // 게임 루프 실행
+    const int FRAME_INTERVAL = 33; // 초당 30프레임 = 약 33ms
+    auto lastFrameTime = std::chrono::high_resolution_clock::now();
 
-    // 메시지 루프와 게임 루프
-    bool gameStarted = false;
-    ZeroMemory(&Message, sizeof(Message));
-    while (Message.message != WM_QUIT) {
-        if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&Message);
-            DispatchMessage(&Message);
+    while (true) {
+        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) break;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
-        else {
-            loop.Update();
-            loop.Render();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastFrameTime).count() >= FRAME_INTERVAL) {
+            lastFrameTime = currentTime;
+
+            // 게임 업데이트 및 렌더링
+            gameLoop.Update();
+            gameLoop.Render();
         }
-        Sleep(1);
+
+        Sleep(1); // CPU 사용량 제어
     }
 
-    CloseHandle(hCommThread);
-    CloseHandle(gGameStartEvent);
+    // 종료 처리
     closesocket(g_serverSocket);
     WSACleanup();
 
-    return Message.wParam;
+    return (int)msg.wParam;
 }
 
 // 윈도우 프로시저

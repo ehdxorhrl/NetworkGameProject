@@ -25,6 +25,7 @@ const int NUM_PLAYERS = 2;
 const int MAPSIZE = 800;
 const int BLOCK_SIZE = 100; // 각 블록의 픽셀 크기
 const int CANNON_SIZE = 25;
+const int BUFFER_SIZE = 1024;
 
 using namespace std;
 using std::vector;

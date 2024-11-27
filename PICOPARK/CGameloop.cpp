@@ -1,32 +1,56 @@
 #include "stdafx.h"
 #include "CGameloop.h"
 
-CGameloop::CGameloop()
-{
+CGameloop::CGameloop() {}
+
+CGameloop::~CGameloop() {}
+
+void CGameloop::Init(HWND hWnd) {
+    hwnd = hWnd;
+    timeManager.Init();
+    inputManager.Init(hwnd);
+    SceneManager.Init();
 }
 
-CGameloop::~CGameloop()
-{
+void CGameloop::Update() {
+    timeManager.Update();
+    inputManager.Update();
 
+    static float timeAccumulator = 0.0f; // 시간 누적 변수
+    timeAccumulator += timeManager.GetDeltaTime();
+
+    const float PACKET_INTERVAL = 1.0f / 30.0f; // 초당 30회 (약 33ms)
+
+    if (timeAccumulator >= PACKET_INTERVAL) {
+        // 주기적으로만 패킷 전송
+        for (int key = 0; key < KEY_TYPE_COUNT; key++) {
+            if (inputManager.IsKeyDown(key)) {
+                // Input_Packet 생성
+                Input_Packet inputPacket;
+                inputPacket.m_playerID = GetID(); // 플레이어 ID
+                inputPacket.inputType = static_cast<KT>(key); // 키 타입
+                inputPacket.inputState = static_cast<KS>(inputManager.GetState(static_cast<KeyType>(key)));
+
+                // 패킷 전송
+                if (serverSocket != INVALID_SOCKET) {
+                    int sendResult = send(serverSocket, reinterpret_cast<const char*>(&inputPacket), sizeof(Input_Packet), 0);
+                    if (sendResult == SOCKET_ERROR) {
+                        std::cerr << "Failed to send input packet: " << WSAGetLastError() << std::endl;
+                    }
+                    else {
+                        std::cout << "Input packet sent for key: " << key << std::endl;
+                    }
+                }
+            }
+        }
+
+        timeAccumulator -= PACKET_INTERVAL; // 간격만큼 시간 차감
+    }
+
+    SceneManager.Update();
 }
 
-void CGameloop::Init(HWND hWnd)
-{
-	hwnd = hWnd;
-	timeManager.Init();
-	inputManager.Init(hwnd);
-	SceneManager.Init();
-}
-
-void CGameloop::Update()
-{
-	timeManager.Update();
-	inputManager.Update();
-	SceneManager.Update();
-}
-
-void CGameloop::Render()
-{
+void CGameloop::Render() {
     HDC mdc;
     HBITMAP hBitmap;
     RECT rt;
@@ -53,4 +77,8 @@ void CGameloop::Render()
     DeleteObject(hBitmap); // 비트맵 해제
     DeleteDC(mdc); // 메모리 DC 해제
     ReleaseDC(hwnd, hdc);
+}
+
+void CGameloop::SetServerSocket(SOCKET socket) {
+    serverSocket = socket;
 }
