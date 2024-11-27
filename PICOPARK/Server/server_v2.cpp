@@ -27,49 +27,6 @@ size_t GetPacketSize(uint8_t packetType) {
     }
 }
 
-bool AddToBuffer(int playerID, const char* data, size_t dataSize) {
-    EnterCriticalSection(&playerBufferCS[playerID]);
-    if (bufferOffsets[playerID] + dataSize > BUFFER_SIZE) {
-        LeaveCriticalSection(&playerBufferCS[playerID]);
-        std::cerr << "Buffer overflow for player " << playerID << std::endl;
-        return false;
-    }
-
-    memcpy(&playerBuffers[playerID][bufferOffsets[playerID]], data, dataSize);
-    bufferOffsets[playerID] += dataSize;
-    LeaveCriticalSection(&playerBufferCS[playerID]);
-    return true;
-}
-
-void ProcessBuffer(int playerID) {
-    EnterCriticalSection(&playerBufferCS[playerID]);
-    size_t offset = 0;
-
-    while (offset < bufferOffsets[playerID]) {
-        uint8_t opCode = playerBuffers[playerID][offset];
-        size_t packetSize = GetPacketSize(opCode);
-
-        if (packetSize == 0 || offset + packetSize > bufferOffsets[playerID]) {
-            std::cerr << "Invalid or incomplete packet in buffer for player " << playerID << std::endl;
-            break;
-        }
-
-        // 처리 로직 (예: 패킷 읽기 및 처리)
-        const char* packetData = &playerBuffers[playerID][offset];
-        std::cout << "Processing packet (opCode: " << (int)opCode << ", size: " << packetSize << ") for player " << playerID << std::endl;
-
-        // 처리 완료 후 오프셋 이동
-        offset += packetSize;
-    }
-
-    // 처리된 데이터 삭제
-    if (offset < bufferOffsets[playerID]) {
-        memmove(playerBuffers[playerID], &playerBuffers[playerID][offset], bufferOffsets[playerID] - offset);
-    }
-    bufferOffsets[playerID] -= offset;
-    LeaveCriticalSection(&playerBufferCS[playerID]);
-}
-
 template<typename Type>
 Type ReadVal(int i)
 {
@@ -85,14 +42,11 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
     int playerID = params->second;
     delete params; // 동적 할당 해제
 
-    //char recvBuffer[1024];
-    //int bytesReceived;
     int sizeReceived;
     int dataReceived;
 
     while (true) {
         // 데이터 수신
-       /* bytesReceived = recv(clientSocket, recvBuffer, sizeof(short) + sizeof(Input_Packet), 0);*/
         recv(clientSocket, (char*)&sizeReceived, sizeof(int), 0);
         dataReceived = recv(clientSocket, playerBuffers[playerID], sizeReceived, 0);
 
@@ -108,19 +62,19 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
 
 
 
-                std::cout << "Input = " << (int)data.inputState << ", " << (int)data.inputType << ", " << (int)data.m_playerID << ", " << (int)data.m_scene << ", " << std::endl;
+               // std::cout << "Input = " << (int)data.inputState << ", " << (int)data.inputType << ", " << (int)data.m_playerID << ", " << (int)data.m_scene << ", " << std::endl;
                 break;
             }
             case 11:
             {
                 auto data = ReadVal<GTime_Packet>(playerID);
-                std::cout << "GTime = " << data.gameTime << std::endl;
+                //std::cout << "GTime = " << data.gameTime << std::endl;
                 break;
             }
             case 12:
             {
                 auto data = ReadVal<PlayerIDResponsePacket>(playerID);
-                std::cout << "PlayerID" << std::endl;
+                //std::cout << "PlayerID" << std::endl;
                 break;
             }
             case 13:
@@ -136,31 +90,6 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
             }
 
         }
-    
-        /*if (bytesReceived == SOCKET_ERROR || bytesReceived == 0) {
-            std::cerr << "recv() failed or connection closed for player " << playerID << ": " << WSAGetLastError() << std::endl;
-            break;
-        }*/
-        //else
-        //{
-        //    //std::cout << "Success" << std::endl;
-        //}
-
-       /* short opcode;
-        Input_Packet input_packet;
-        memcpy(&opcode, recvBuffer, sizeof(short));
-        memcpy(&input_packet, recvBuffer + sizeof(short), sizeof(Input_Packet));
-
-        std::cout << "opcode = " << opcode << std::endl;
-        std::cout << "Input Packet = " << (int)input_packet.inputState << ", " << (int)input_packet.inputType << ", " << (int)input_packet.m_playerID << ", " << (int)input_packet.m_scene << std::endl;*/
-
-        //// 버퍼에 데이터 추가
-        //if (!AddToBuffer(playerID, recvBuffer, bytesReceived)) {
-        //    break;
-        //}
-
-        // 즉시 버퍼 처리
-        //ProcessBuffer(playerID);
     }
 
     closesocket(clientSocket);
@@ -215,7 +144,7 @@ int main() {
     InitializeCriticalSection(&playerBufferCS[1]);
 
     int clientCount = 0;
-    while (clientCount < 1) { // 두 명의 클라이언트만 허용
+    while (clientCount < 2) { // 두 명의 클라이언트만 허용
         clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
         if (clientSocket == INVALID_SOCKET) {
             std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
@@ -230,9 +159,6 @@ int main() {
             closesocket(clientSocket);
             delete params;
         }
-        //else {
-        //    CloseHandle(hThread);
-        //}
         clientCount++;
     }
 

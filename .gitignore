@@ -64,3 +64,9 @@ $RECYCLE.BIN/
 ##files
 **.*.i
 # End of https://www.toptal.com/developers/gitignore/api/c++,windows
+/Client/.vs
+/Client/Client/x64
+/Client2/Client2/x64
+/PICOPARK/Server/.vs
+/Client2/.vs
+/PICOPARK/Server/Server/x64
