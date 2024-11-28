@@ -49,14 +49,12 @@ void RecvPackets(SOCKET& sock) {
             break;
         }
 
-        // opCode 읽기
         uint8_t opCode = recvBuffer[0];
         std::cout << "Received packet with opCode: " << (int)opCode << ", size: " << bytesReceived << " bytes" << std::endl;
 
         // 패킷 처리 로직 (예시)
         switch (opCode) {
         case 11: {
-
             GTime_Packet gTimePacket;
             memcpy(&gTimePacket, recvBuffer, sizeof(GTime_Packet));
             std::cout << "Game Time: " << gTimePacket.gameTime << "ms" << std::endl;
@@ -200,12 +198,11 @@ int main() {
 
         SendPacket(clientSocket, &Size, sizeof(int));
         SendPacket(clientSocket, buffer, Size);
-        // 서버로부터 패킷 받기
-        RecvPackets(clientSocket);
     }
     
 
-    
+    // 서버로부터 패킷 받기
+    RecvPackets(clientSocket);
 
     // 소켓 정리
     closesocket(clientSocket);

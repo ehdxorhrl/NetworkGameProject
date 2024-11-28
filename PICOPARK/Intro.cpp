@@ -11,7 +11,7 @@ Intro::~Intro()
 
 void Intro::Init()
 {
-	Background.Load(L"Intro.png");
+	Background.Load(L"assets/Intro.png");
 }
 
 void Intro::Update()

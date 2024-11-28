@@ -16,7 +16,8 @@ enum class PlayerState
 	Move,
 	Jump,
 	MoveAndJump,
-	Die
+	Die,
+	Shooting
 };
 
 class CPlayer :public CObject
@@ -33,6 +34,11 @@ public:
 	void Update() override;
 public:
 	void UpdateAnimation(float deltaTime);
+	PlayerType GetPtype() { return Ptype; }
+	bool CheckHorizontalCollision(int direction);
+	RECT GetBoundingBox() const;
+	bool CheckCollisionWithBlocks(const RECT& area);
+	bool CheckVerticalCollision();
 private:
 	CImage PImage[5];
 	PlayerType Ptype = PlayerType::None;
@@ -41,8 +47,8 @@ private:
 	float jumpVelocity = 0.0f;
 	float gravity = 980.0f;
 	float jumpStrength = 450.0f;
-	float groundY = 400.0f;
 	bool isJumping = false;
+	bool isOnGround = false;
 	int Movement = 0;
 	int dir = 0;
 };

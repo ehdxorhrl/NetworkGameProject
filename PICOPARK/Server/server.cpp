@@ -14,11 +14,6 @@ CRITICAL_SECTION sendQueueCS;
 std::queue<Input_Packet> RecvQueue;
 std::queue<ObjectInfo_Packet> SendQueue;
 
-void SendStartGame(SOCKET& sock, bool isGameStarted)
-{
-
-}
-
 DWORD WINAPI CommunicationThread(LPVOID lpParam) {
     SOCKET clientSocket = (SOCKET)lpParam;
     char recvBuffer[1024];

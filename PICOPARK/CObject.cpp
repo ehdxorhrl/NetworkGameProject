@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "CObject.h"
 
 //PLAYER::PLAYER()

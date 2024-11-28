@@ -9,6 +9,8 @@ enum class KeyType
 	Left = VK_LEFT,
 	Right = VK_RIGHT,
 
+	Space = VK_SPACE,
+
 	R = 'R',
 	r = 'r'
 };
@@ -50,8 +52,8 @@ public:
 	bool GetButtonDown(KeyType key) { return GetState(key) == KeyState::Down; }
 	bool GetButtonUp(KeyType key) { return GetState(key) == KeyState::Up; }
 	POINT GetMousePos() { return mousePos; }
-private:
 	KeyState GetState(KeyType key) { return states[static_cast<uint8_t>(key)]; }
+
 private:
 	HWND hwnd;
 	vector<KeyState> states;

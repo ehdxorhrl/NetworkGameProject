@@ -1,85 +1,65 @@
 #pragma once
-#include <WinUser.h>
+#include <windows.h>
 #include <cstdint>
-#include "CObject.h"
+#include <vector>
+#include <memory>
 
-enum class PlayerState
-{
-	Idle,
-	Move,
-	Jump,
-	MoveAndJump,
-	Die
+// Enums
+enum class PS { Idle, Move, Jump, MoveAndJump, Die };  // Player state
+enum class KT { Left_Mouse = VK_LBUTTON, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, R = 'R' }; // Key type
+enum class KS { None, Press, Down, Up, End }; // Key state
+enum class ST { None, Intro, Main, Stage1, Stage2, Stage3, Ending }; // Scene type
+
+#pragma pack(push, 1) // 1바이트 정렬
+
+// Base Packet
+struct BasePacket {
+    uint8_t packetType; // Packet type
+    ~BasePacket() = default; // 가상 소멸자 제거
 };
 
-enum class KeyType
-{
-	Left_Mouse = VK_LBUTTON,
+// Input Packet
+struct Input_Packet : BasePacket {
+    uint32_t m_playerID;
+    KT inputType;
+    KS inputState;
 
-	Up = VK_UP,
-	Down = VK_DOWN,
-	Left = VK_LEFT,
-	Right = VK_RIGHT,
-
-	R = 'R'
+    Input_Packet() { packetType = 1; }
 };
 
-enum class KeyState
-{
-	None,
-	Press,
-	Down,
-	Up,
+// Player ID Response Packet
+struct PlayerIDResponsePacket : BasePacket {
+    uint32_t m_playerID;
+    bool isSuccess;
 
-	End
+    PlayerIDResponsePacket() { packetType = 12; }
 };
 
-enum class SceneType
-{
-	None,
-	Intro,
-	Main,
-	Stage1,
-	Stage2,
-	Stage3,
-	Ending
+// Object Info Packet
+struct ObjectInfo_Packet : BasePacket {
+    ST m_scene;
+    struct PlayerInfo {
+        uint32_t m_playerID;
+        float m_x, m_y;
+        int m_size;
+        PS m_state;
+        bool m_haskey;
+    } m_player[2];
+    struct KeyInfo {
+        float m_x, m_y;
+        bool m_haskey;
+    } m_key;
+
+    ObjectInfo_Packet() { packetType = 13; }
 };
 
-struct PlayerInfo
-{
-	uint32_t m_playerID;
-	float m_x, m_y;
-	int m_size;
-	PlayerState m_state;
-	bool m_haskey;
-	int m_movement;
-	bool m_restart;
+// Game Start Packet
+struct GameStart_Packet : BasePacket {
+    bool isGameStarted;
+
+    GameStart_Packet() {
+        packetType = 102; // Initialize packet type
+    }
 };
 
-struct KeyInfo
-{
-	float m_x, m_y;
-	bool m_haskey;
-};
-
-struct DoorInfo
-{
-	float m_x, m_y;
-	bool m_Isopen;
-};
-
-///////////////////////////////////////////////////////
-
-struct Input_Packet
-{
-	uint8_t packetType = 1;
-	SceneType m_scene;
-	uint32_t m_playerID;
-	KeyType inputType;
-	KeyState inputState;
-};
-
-struct PlayerIDRequest_Packet
-{
-	uint8_t packetType;
-};
+#pragma pack(pop) // 정렬 원래대로 복구
