@@ -183,6 +183,57 @@ bool SetSocketTimeout(SOCKET& sock, int timeoutInSeconds) {
     return true;
 }
 
+bool HandleNetworkError(int errorCode) {
+    std::string errorMessage;
+
+    // 오류 코드에 따른 메시지 처리
+    switch (errorCode) {
+    case WSAEWOULDBLOCK:
+        errorMessage = "Non-blocking operation could not complete immediately.";
+        break;
+    case WSAECONNRESET:
+        errorMessage = "Connection reset by peer.";
+        break;
+    case WSAETIMEDOUT:
+        errorMessage = "Connection timed out.";
+        break;
+    case WSAENETDOWN:
+        errorMessage = "Network is down.";
+        break;
+    case WSAENOTCONN:
+        errorMessage = "Socket is not connected.";
+        break;
+    case WSAECONNABORTED:
+        errorMessage = "Software caused connection abort.";
+        break;
+    case WSAEADDRINUSE:
+        errorMessage = "Address already in use.";
+        break;
+    default:
+        errorMessage = "Unknown network error: " + std::to_string(errorCode);
+        break;
+    }
+
+    // 오류 메시지 출력
+    std::cerr << "Network Error [" << errorCode << "]: " << errorMessage << std::endl;
+
+    // 오류 처리 결과 반환
+    // true: 복구 가능한 오류, false: 복구 불가능한 오류
+    switch (errorCode) {
+    case WSAEWOULDBLOCK: // 비차단 상태에서 발생하는 정상적인 상황
+        return true;
+    case WSAECONNRESET:  // 연결이 리셋된 경우
+    case WSAETIMEDOUT:   // 타임아웃 발생
+    case WSAENETDOWN:    // 네트워크 다운
+    case WSAECONNABORTED:// 연결 중단
+    case WSAENOTCONN:    // 소켓이 연결되지 않음
+    case WSAEADDRINUSE:  // 주소 사용 중
+        return false;    // 복구 불가능한 오류
+    default:
+        return false;    // 알 수 없는 오류는 복구 불가로 간주
+    }
+}
+
 //// 서버로부터 데이터 수신
         //int bytesReceived = recv(g_serverSocket, buffer, sizeof(buffer) - 1, 0);
         //if (bytesReceived > 0) {
