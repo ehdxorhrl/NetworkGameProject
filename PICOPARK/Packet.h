@@ -20,7 +20,6 @@ struct BasePacket {
 
 // Input Packet
 struct Input_Packet : BasePacket {
-    ST m_scene;
     uint32_t m_playerID;
     KT inputType;
     KS inputState;

@@ -24,6 +24,7 @@
     <ProjectGuid>{5a4d0015-3e19-4c16-bfab-125ae1278025}</ProjectGuid>
     <RootNamespace>윈프기말텀프로젝트</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -127,6 +128,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Client\client.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="CBullet.cpp" />
     <ClCompile Include="CGameloop.cpp" />
     <ClCompile Include="CObject.cpp" />
     <ClCompile Include="CPlayer.cpp" />
@@ -136,6 +142,7 @@
     <ClCompile Include="Intro.cpp" />
     <ClCompile Include="LoadingScene.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Stage1.cpp" />
     <ClCompile Include="TimeManager.cpp" />
@@ -149,6 +156,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CBullet.h" />
     <ClInclude Include="CGameloop.h" />
     <ClInclude Include="CObject.h" />
     <ClInclude Include="CPlayer.h" />
@@ -157,6 +165,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Intro.h" />
     <ClInclude Include="LoadingScene.h" />
+    <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SceneManager.h" />

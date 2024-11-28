@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="CGameloop.cpp" />
+    <ClCompile Include="CObject.cpp" />
+    <ClCompile Include="CPlayer.cpp" />
+    <ClCompile Include="CScene.cpp" />
+    <ClCompile Include="EndingScene.cpp" />
+    <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="Intro.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="LoadingScene.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Stage1.cpp" />
+    <ClCompile Include="TimeManager.cpp" />
+    <ClCompile Include="바꾸기용.cpp" />
+    <ClCompile Include="윈프기말텀프.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="CBullet.cpp" />
+    <ClCompile Include="..\Client\client.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CGameloop.h" />
+    <ClInclude Include="CObject.h" />
+    <ClInclude Include="CPlayer.h" />
+    <ClInclude Include="CScene.h" />
+    <ClInclude Include="EndingScene.h" />
+    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="Intro.h" />
+    <ClInclude Include="LoadingScene.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Stage1.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="test.h" />
+    <ClInclude Include="TimeManager.h" />
+    <ClInclude Include="ObjectManager.h" />
+    <ClInclude Include="CBullet.h" />
+    <ClInclude Include="Packet.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
+  </ItemGroup>
+</Project>

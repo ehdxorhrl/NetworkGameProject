@@ -8,7 +8,7 @@
 
 void SceneManager::Init()
 {
-
+	MessageBox(NULL, L"WSAStartup ½ÇÆÐ", L"Error", MB_OK);
 	OutputDebugString(L"SceneManager::Init called\n");
 
 	CScene* nScene = nullptr;

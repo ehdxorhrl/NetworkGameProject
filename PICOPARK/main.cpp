@@ -11,7 +11,6 @@ LPCTSTR lpszWindowName = L"Window Program gimal project";
 CGameloop loop;
 SOCKET g_serverSocket = INVALID_SOCKET;
 
-HANDLE gGameStartEvent = NULL;
 HANDLE hCommThread = NULL;  // Communication 스레드 핸들
 HANDLE hServerSignalThread = NULL;  // 서버 신호 대기 스레드 핸들
 
@@ -27,7 +26,7 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
 
         if (bytesReceived > 0) {
             uint8_t packetType = buffer[0]; // 첫 바이트는 packetType으로 가정
-            switch (packetType) {
+            switch (static_cast<int>(packetType)) {
             case 12: { // PlayerIDResponsePacket
                 if (bytesReceived == sizeof(PlayerIDResponsePacket)) {
                     PlayerIDResponsePacket idResponse;
@@ -46,7 +45,7 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
                 }
                 break;
             }
-            case 102: { // GameStart_Packet
+            case 102: { // GameStart_Packet           
                 if (bytesReceived == sizeof(GameStart_Packet)) {
                     GameStart_Packet startPacket;
                     memcpy(&startPacket, buffer, sizeof(GameStart_Packet));
@@ -54,6 +53,7 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
                         OutputDebugString(L"Game Start Packet received.\n");
                         SceneManager& sceneManager = SceneManager::GetInstance();
                         sceneManager.ChangeScene(); // 씬 전환
+
                     }
                     else {
                         OutputDebugString(L"Game Start Packet indicates game not started.\n");
@@ -81,10 +81,11 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
             }
         }
 
-        Sleep(1); // CPU 사용량 제어
+       // Sleep(1); // CPU 사용량 제어
     }
     return 0;
 }
+
 
 // 서버 연결 함수
 bool ConnectToServer(const char* serverIP, int port) {
@@ -121,8 +122,10 @@ bool ConnectToServer(const char* serverIP, int port) {
 // WinMain 함수
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     HWND hWnd;
-    MSG msg;
-    WNDCLASSEX wcex;
+    MSG Message;
+    WNDCLASSEX wcex; // 구조체 선언
+    char buffer[BUFFER_SIZE]; // 데이터 버퍼 선언
+    g_hInst = hInstance;
 
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -138,7 +141,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 
     if (!RegisterClassEx(&wcex)) {
-        MessageBox(nullptr, L"Call to RegisterClassEx failed!", L"Error", NULL);
+        DWORD error = GetLastError();
+        std::wstring errorMsg = L"RegisterClassEx failed with error code: " + std::to_wstring(error);
+        MessageBox(nullptr, errorMsg.c_str(), L"Error", NULL);
         return 1;
     }
 
@@ -147,47 +152,62 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         L"Game Title",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        800, 600,
+        800, 800,
         nullptr,
         nullptr,
         hInstance,
         nullptr
     );
 
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
+
+    // 명령줄 파라미터 파싱
+    std::wstring cmdLine(lpCmdLine);
+    std::wistringstream cmdStream(cmdLine);
+    std::wstring ip;
+    int port = 9000;
+    if (!(cmdStream >> ip >> port)) {
+        ip = L"127.0.0.1";
+        port = 9000;
+    }
+
+    // 소켓 연결
+    std::string ipStr(ip.begin(), ip.end());
+    if (!ConnectToServer(ipStr.c_str(), port)) {
+        MessageBox(nullptr, L"Failed to connect to server!", L"Error", NULL);
+        return 1;
+    }
+
+    hCommThread = CreateThread(
+        NULL, 0,
+        CommunicationThreadFunc,
+        NULL, 0, NULL
+    );
+
+    if (!hCommThread) {
+        MessageBox(nullptr, L"Failed to create communication thread!", L"Error", NULL);
+        return 1;
+    }
+
+    
+
     if (!hWnd) {
         MessageBox(nullptr, L"Call to CreateWindow failed!", L"Error", NULL);
         return 1;
     }
 
-    ShowWindow(hWnd, nCmdShow);
-    UpdateWindow(hWnd);
+    loop.SetServerSocket(g_serverSocket); // 소켓 전달
 
-    CGameloop gameLoop;
-    gameLoop.Init(hWnd);
-
-    // 소켓 연결 설정
-    if (ConnectToServer("127.0.0.1", 9000)) {
-        gameLoop.SetServerSocket(g_serverSocket); // 서버 소켓 전달
-    }
-
-    // 게임 루프 실행
-    const int FRAME_INTERVAL = 33; // 초당 30프레임 = 약 33ms
-    auto lastFrameTime = std::chrono::high_resolution_clock::now();
-
-    while (true) {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            if (msg.message == WM_QUIT) break;
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+    ZeroMemory(&Message, sizeof(Message));
+    while (Message.message != WM_QUIT) {
+        if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&Message);
+            DispatchMessage(&Message);
         }
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastFrameTime).count() >= FRAME_INTERVAL) {
-            lastFrameTime = currentTime;
-
-            // 게임 업데이트 및 렌더링
-            gameLoop.Update();
-            gameLoop.Render();
+        else{   // 게임 업데이트 및 렌더링
+            loop.Update();
+            loop.Render();
         }
 
         Sleep(1); // CPU 사용량 제어
@@ -197,7 +217,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     closesocket(g_serverSocket);
     WSACleanup();
 
-    return (int)msg.wParam;
+    return (int)Message.wParam;
 }
 
 // 윈도우 프로시저
