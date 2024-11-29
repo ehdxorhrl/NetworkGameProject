@@ -18,11 +18,6 @@ void Stage1::Init()
 
     // Use ObjectManager to create and manage the player
     CPlayer* player = ObjectManager::GetInstance().CreateObject<CPlayer>();
-
-    if (player->GetPtype() == PlayerType::P1)
-        player->SetPos(150, 675);
-    else
-        player->SetPos(650, 675);
 }
 
 void Stage1::Update()

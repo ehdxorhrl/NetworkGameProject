@@ -43,14 +43,9 @@ void CPlayer::Init() {
 }
 
 void CPlayer::Update() {
-    if (info == nullptr) {
-        return;
-    }
-
-    pos.x = info->m_player.m_x;
-
-    pos.y = info->m_player.m_y;
-    Pstate = info->m_player.m_state;
+    pos.x = info.m_player.m_x;
+    pos.y = info.m_player.m_y;
+    Pstate = info.m_player.m_state;
 
 }
 

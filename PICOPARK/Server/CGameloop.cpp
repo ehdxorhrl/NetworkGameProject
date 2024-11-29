@@ -11,22 +11,22 @@ void CGameloop::Init() {
 }
 
 void CGameloop::Update(const Input_Packet* inputPacket) {
+
     CScene* currentScene = SceneManager.GetInstance().GetCurrentScene();
-    if (currentScene) {
-        PlayerType playerType = static_cast<PlayerType>(inputPacket->m_playerID);
+    if (currentScene && inputPacket) {
+        uint32_t playerType = inputPacket->m_playerID;
 
         // ObjectManager에서 플레이어 가져오기
         CPlayer* player = nullptr;
         const auto& objects = ObjectManager::GetInstance().GetObjects();
         for (auto* obj : objects) {
             if (CPlayer* p = dynamic_cast<CPlayer*>(obj)) {
-                if (p->GetPtype() == playerType) {
-                    player = p;
-                    break;
-                }
+                if(playerType == p->GetID())
+                player = p;
+                break;
             }
         }
-
+        std::cerr << inputPacket->m_playerID << "\n";
         // player가 nullptr인지 확인
         if (player) {
             player->SetInput(inputPacket->inputType, inputPacket->inputTime);

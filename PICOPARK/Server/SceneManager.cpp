@@ -7,8 +7,6 @@
 
 void SceneManager::Init()
 {
-	OutputDebugString(L"SceneManager::Init called\n");
-
 	CScene* nScene = nullptr;
 	SceneType nSceneType = SceneType::None;
 
@@ -53,13 +51,14 @@ void SceneManager::ChangeScene()
 		//	break;
 		//}
 
-		if (scene) {
-			delete scene;
-			scene = nullptr;
-		}
-
-		scene = nScene;
-		sceneType = nSceneType;
-		nScene->Init();
 	}
+
+	if (scene) {
+		delete scene;
+		scene = nullptr;
+	}
+
+	scene = nScene;
+	sceneType = nSceneType;
+	nScene->Init();
 }

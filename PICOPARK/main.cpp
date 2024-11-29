@@ -53,7 +53,7 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
                     const auto& objects = ObjectManager::GetInstance().GetObjects();
                     for (auto* obj : objects) {
                         if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
-                            player->Setinfo(&objinfo);
+                            player->Setinfo(objinfo);
                             break;
                         }
                     }

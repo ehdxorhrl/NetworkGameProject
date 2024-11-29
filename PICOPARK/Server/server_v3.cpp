@@ -1,16 +1,23 @@
+#include "stdafx.h"
 #include <winsock2.h>
 #include <iostream>
 #include <queue>
 #include <memory>
 #include <chrono>
 #include <windows.h>
-#include "Packet.h"
+#include "CGameloop.h"
+#include "CPlayer.h"
+
 
 #pragma comment(lib, "ws2_32.lib")
 
 #define SERVER_PORT 9000
 #define MAX_CLIENTS 1
 #define BUFFER_SIZE 512
+
+CGameloop loop;
+
+int cnt = 0;
 
 // 임계영역
 CRITICAL_SECTION RecvQueueCS;
@@ -41,24 +48,18 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
             return 0; // 스레드 종료
         }
 
-        if (recvSize >= sizeof(Input_Packet)) {
-            Input_Packet receivedPacket;
-            memcpy(&receivedPacket, buffer, sizeof(Input_Packet));
-
-            std::cout << "Received Input_Packet from Player " << playerID << ":\n";
-            std::cout << "  Packet Type: " << static_cast<int>(receivedPacket.packetType) << "\n";
-            std::cout << "  Player ID: " << receivedPacket.m_playerID << "\n";
-            std::cout << "  Input Type: " << static_cast<int>(receivedPacket.inputType) << "\n";
-            std::cout << "  Input State: " << static_cast<int>(receivedPacket.inputState) << "\n";
-        }
-        else {
-            std::cerr << "Invalid packet size received: " << recvSize << " bytes.\n";
-        }
-
         auto packet = std::make_unique<Input_Packet>();
         memcpy(packet.get(), buffer, sizeof(Input_Packet));
 
-        // RecvQueue에 입력 데이터 저장
+        // 디버깅 출력
+        std::cout << "Received Input_Packet from Player " << playerID << ":" << std::endl;
+        std::cout << "  Packet Type: " << static_cast<int>(packet->packetType) << std::endl;
+        std::cout << "  Player ID: " << packet->m_playerID << std::endl;
+        std::cout << "  Input Type: " << static_cast<int>(packet->inputType) << std::endl;
+        std::cout << "  Input State: " << static_cast<int>(packet->inputState) << std::endl;
+        std::cout << "  inputTime: " << packet->inputTime << std::endl;
+
+        // RecvQueue에 추가
         EnterCriticalSection(&RecvQueueCS);
         RecvQueue.push(std::move(packet));
         LeaveCriticalSection(&RecvQueueCS);
@@ -76,11 +77,12 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
             LeaveCriticalSection(&SendQueueCS);
         }
 
-        Sleep(1); // CPU 사용량 제어
+        //Sleep(1); // CPU 사용량 제어
     }
 }
 
 int main() {
+    loop.Init();
     WSADATA wsaData;
     SOCKET serverSocket;
     sockaddr_in serverAddr;
@@ -169,6 +171,7 @@ int main() {
             LeaveCriticalSection(&RecvQueueCS);
 
             // TempQueue 데이터 처리
+            bool processedInput = false; // 입력이 처리되었는지 확인하는 플래그
             while (!TempQueue.empty()) {
                 auto packet = std::move(TempQueue.front());
                 TempQueue.pop();
@@ -176,35 +179,39 @@ int main() {
                 // Input_Packet 처리
                 if (packet->packetType == 1) {
                     auto inputPacket = std::unique_ptr<Input_Packet>(static_cast<Input_Packet*>(packet.release()));
-                    std::cout << "Processing Input_Packet from Player " << inputPacket->m_playerID << ":\n";
+                    std::cout << "Input Packet Details:\n";
+                    std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
                     std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
                     std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
+                    std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
 
-                    // 업데이트 로직 (예: 플레이어 위치 업데이트)
-                    auto objectPacket = std::make_unique<ObjectInfo_Packet>();
-                    objectPacket->m_scene = ST::Main;
-                    objectPacket->m_player[inputPacket->m_playerID].m_x += 10.0f; // 예시 업데이트
-                    objectPacket->m_player[inputPacket->m_playerID].m_y += 5.0f;
-
-                    // SendQueue에 추가
-                    EnterCriticalSection(&SendQueueCS);
-                    SendQueue.push(std::move(objectPacket));
-                    LeaveCriticalSection(&SendQueueCS);
+                    loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
+                    processedInput = true; // 입력 처리 플래그 설정
                 }
             }
 
-            // SendQueue에서 패킷 전송
+            // 입력이 없는 경우에도 기본 상태 갱신
+            if (!processedInput) {
+                loop.Update(nullptr); // 입력이 없는 상태로 업데이트 호출
+            }
+
+            // 상태 패킷 생성 및 전송
+            auto objectPacket = std::make_unique<ObjectInfo_Packet>();
+            const auto& objects = ObjectManager::GetInstance().GetObjects();
+
+            for (auto* obj : objects) {
+                if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
+                    PlayerInfo playerInfo = player->GetPK();
+                    std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
+                        << ", X = " << playerInfo.m_x
+                        << ", Y = " << playerInfo.m_y << std::endl;
+
+                    objectPacket->m_player = playerInfo; // 패킷에 추가
+                }
+            }
+
             EnterCriticalSection(&SendQueueCS);
-            while (!SendQueue.empty()) {
-                auto sendPacket = std::move(SendQueue.front());
-                SendQueue.pop();
-
-                for (int i = 0; i < MAX_CLIENTS; ++i) {
-                    if (clientSockets[i] != INVALID_SOCKET) {
-                        send(clientSockets[i], reinterpret_cast<char*>(sendPacket.get()), sizeof(ObjectInfo_Packet), 0);
-                    }
-                }
-            }
+            SendQueue.push(std::move(objectPacket));
             LeaveCriticalSection(&SendQueueCS);
         }
 

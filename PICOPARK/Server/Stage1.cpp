@@ -14,31 +14,32 @@ void Stage1::Init()
 {
     InitializeMap();
 
-    // 플레이어 생성
-    CPlayer* player = ObjectManager::GetInstance().CreateObject<CPlayer>();
+    // 플레이어 추가
+    ObjectManager& manager = ObjectManager::GetInstance();
+    CPlayer* player1 = manager.AddPlayer(PlayerType::P1);
+    player1->SetPos(150, 675); // P1 초기 위치 설정
 
-    // 플레이어 속성 설정
-    if (player) {
-        if (player->GetPtype() == PlayerType::P1)
-            player->SetPos(150, 675);
-        else
-            player->SetPos(650, 675);
+    CPlayer* player2 = manager.AddPlayer(PlayerType::P2);
+    player2->SetPos(650, 675); // P2 초기 위치 설정
 
-        Position pos = player->GetPos(); // GetPos 사용
-        std::cout << "Player added: ID = " << static_cast<int>(player->GetPtype())
-            << ", X = " << pos.x
-            << ", Y = " << pos.y << std::endl;
-    }
-    else {
-        std::cerr << "Error: Player creation failed!\n";
+    std::cout << "Players initialized:\n";
+    for (const auto* obj : manager.GetObjects()) {
+        if (const auto* player = dynamic_cast<const CPlayer*>(obj)) {
+            std::cout << "  Player ID: " << player->GetPK().m_playerID
+                << ", Type: " << static_cast<int>(player->GetPtype())
+                << ", X: " << player->GetPos().x
+                << ", Y: " << player->GetPos().y << "\n";
+        }
     }
 }
+
 
 void Stage1::Update()
 {
     CPlayer* player = ObjectManager::GetInstance().GetPlayer(); // 플레이어 객체 가져오기
-    if (!player)
-        return;
+    if (!player) {
+        std::cout << "  oh my got " << "\n";
+    }
 
     Position pos = player->GetPos(); // GetPos 사용
     int x = pos.x;

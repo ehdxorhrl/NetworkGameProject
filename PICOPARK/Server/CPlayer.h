@@ -24,6 +24,7 @@ public:
 public:
 	void UpdateAnimation(float deltaTime);
 	PlayerType GetPtype() { return Ptype; }
+	uint32_t GetID() { return playerID; }
 	bool CheckHorizontalCollision(int direction);
 	RECT GetBoundingBox() const;
 	bool CheckCollisionWithBlocks(const RECT& area);
@@ -45,6 +46,10 @@ public:
 		myinfo.m_y = pos.y;
 
 		return myinfo;
+	}
+	PlayerType GetPtype() const { return Ptype; }
+	void SetID(uint32_t _id) {
+		playerID = _id;
 	}
 
 	void SetInput(KT _input, uint64_t _time) {

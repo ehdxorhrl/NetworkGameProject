@@ -13,11 +13,12 @@ void CPlayer::Init() {
     input = KT::None;
     input_time = 0;
     playerID = 0;
+    Ptype = PlayerType::P2;
 }
 
 void CPlayer::Update() {
 
-    float deltaTime = input_time / 1000;
+    float deltaTime = (float)input_time / 1000;
 
     // 중력 처리
     pos.y += jumpVelocity * deltaTime; // 점프 속도 적용
@@ -143,6 +144,8 @@ void CPlayer::Update() {
         jumpVelocity = -jumpStrength; // 위로 점프
         Pstate = PlayerState::Jump;
     }
+    input_time = 0;
+    input = KT::None;
 }
 
 

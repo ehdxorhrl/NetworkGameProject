@@ -25,7 +25,7 @@ public:
 public:
 	void UpdateAnimation(float deltaTime);
 	PlayerType GetPtype() { return Ptype; }
-	void Setinfo(ObjectInfo_Packet* _info) { info = _info; }
+	void Setinfo(ObjectInfo_Packet _info) { info = _info; }
 private:
 	CImage PImage[5];
 	PlayerType Ptype = PlayerType::None;
@@ -33,5 +33,5 @@ private:
 	float animationTimer = 0.0f;
 	int Movement = 0;
 	int dir = 0;
-	ObjectInfo_Packet* info;
+	ObjectInfo_Packet info;
 };

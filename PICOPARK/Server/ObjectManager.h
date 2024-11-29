@@ -48,7 +48,10 @@ public:
     }
 
     CPlayer* AddPlayer(PlayerType playerType) {
+        static uint32_t currentID = 0; // 고유 ID 생성기
+
         CPlayer* newPlayer = new CPlayer(playerType);
+        newPlayer->SetID(currentID++); // 고유 ID 설정
         Add(newPlayer); // ObjectManager의 Add 메서드를 호출
         return newPlayer;
     }
