@@ -25,5 +25,5 @@ void TimeManager::Update()
 		frameTime = 0.f;
 		frameCount = 0;
 	}
-	
+
 }

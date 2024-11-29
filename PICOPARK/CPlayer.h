@@ -10,16 +10,6 @@ enum class PlayerType
 	P2 // 다른 네트워크 플레이어
 };
 
-enum class PlayerState
-{
-	Idle,
-	Move,
-	Jump,
-	MoveAndJump,
-	Die,
-	Shooting
-};
-
 class CPlayer :public CObject
 {
 public:
@@ -35,20 +25,13 @@ public:
 public:
 	void UpdateAnimation(float deltaTime);
 	PlayerType GetPtype() { return Ptype; }
-	bool CheckHorizontalCollision(int direction);
-	RECT GetBoundingBox() const;
-	bool CheckCollisionWithBlocks(const RECT& area);
-	bool CheckVerticalCollision();
+	void Setinfo(ObjectInfo_Packet* _info) { info = _info; }
 private:
 	CImage PImage[5];
 	PlayerType Ptype = PlayerType::None;
 	PlayerState Pstate = PlayerState::Idle;
 	float animationTimer = 0.0f;
-	float jumpVelocity = 0.0f;
-	float gravity = 980.0f;
-	float jumpStrength = 450.0f;
-	bool isJumping = false;
-	bool isOnGround = false;
 	int Movement = 0;
 	int dir = 0;
+	ObjectInfo_Packet* info;
 };

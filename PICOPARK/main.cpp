@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "CGameloop.h"
 #include "LoadingScene.h"
+#include "ObjectManager.h"
 #pragma comment(lib, "ws2_32.lib")
 
 HINSTANCE g_hInst;
@@ -26,7 +27,7 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
 
         if (bytesReceived > 0) {
             uint8_t packetType = buffer[0]; // 첫 바이트는 packetType으로 가정
-            switch (static_cast<int>(packetType)) {
+            switch (static_cast<int>(packetType)) {          
             case 12: { // PlayerIDResponsePacket
                 if (bytesReceived == sizeof(PlayerIDResponsePacket)) {
                     PlayerIDResponsePacket idResponse;
@@ -42,6 +43,20 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
                 }
                 else {
                     OutputDebugString(L"Invalid PlayerIDResponsePacket size.\n");
+                }
+                break;
+            }
+            case 13: { // ObjectInfo_Packet
+                if (bytesReceived == sizeof(ObjectInfo_Packet)) {
+                    ObjectInfo_Packet objinfo;
+                    memcpy(&objinfo, buffer, sizeof(ObjectInfo_Packet));
+                    const auto& objects = ObjectManager::GetInstance().GetObjects();
+                    for (auto* obj : objects) {
+                        if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
+                            player->Setinfo(&objinfo);
+                            break;
+                        }
+                    }
                 }
                 break;
             }
@@ -63,7 +78,7 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
                     OutputDebugString(L"Invalid GameStart_Packet size.\n");
                 }
                 break;
-            }
+            }      
             default:
                 OutputDebugString(L"Unhandled packet type.\n");
                 break;

@@ -30,6 +30,7 @@ void CGameloop::Update() {
                 inputPacket.m_playerID = GetID(); // 플레이어 ID
                 inputPacket.inputType = static_cast<KT>(key); // 키 타입
                 inputPacket.inputState = static_cast<KS>(inputManager.GetState(static_cast<KeyType>(key)));
+                inputPacket.inputTime = static_cast<uint64_t>(timeManager.GetDeltaTime() * 1000);
 
                 // 패킷 전송
                 if (serverSocket != INVALID_SOCKET) {

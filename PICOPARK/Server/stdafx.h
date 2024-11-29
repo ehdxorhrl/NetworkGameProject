@@ -52,18 +52,15 @@ struct PlayerInfo
 	float m_x, m_y;
 	int m_size;
 	PlayerState m_state;
-
+	
 };
 
-enum class KT { Left_Mouse = VK_LBUTTON, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, R = 'R' }; // Key type
+enum class KT { Left_Mouse = VK_LBUTTON, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, R = 'R', None }; // Key type
 enum class KS { None, Press, Down, Up, End }; // Key state
 enum class ST { None, Intro, Main, Stage1, Stage2, Stage3, Ending }; // Scene type
 
-#include "resource.h"
 #include "Packet.h"
 #include "TimeManager.h"
-#include "InputManager.h"
 #include "SceneManager.h"
-
+#include "ObjectManager.h"
 #include "CObject.h"
-
