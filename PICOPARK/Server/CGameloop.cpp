@@ -43,3 +43,9 @@ void CGameloop::Update(const Input_Packet* inputPacket) {
     timeManager.Update();
     SceneManager.Update();
 }
+
+void CGameloop::Update()
+{
+    timeManager.Update();
+    SceneManager.Update();
+}

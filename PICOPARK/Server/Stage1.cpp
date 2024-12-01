@@ -19,8 +19,8 @@ void Stage1::Init()
     CPlayer* player1 = manager.AddPlayer(PlayerType::P1);
     player1->SetPos(150, 675); // P1 초기 위치 설정
 
-    CPlayer* player2 = manager.AddPlayer(PlayerType::P2);
-    player2->SetPos(650, 675); // P2 초기 위치 설정
+    //CPlayer* player2 = manager.AddPlayer(PlayerType::P2);
+    //player2->SetPos(650, 675); // P2 초기 위치 설정
 
     std::cout << "Players initialized:\n";
     for (const auto* obj : manager.GetObjects()) {
@@ -37,23 +37,23 @@ void Stage1::Init()
 void Stage1::Update()
 {
     CPlayer* player = ObjectManager::GetInstance().GetPlayer(); // 플레이어 객체 가져오기
+
+    int x, y;
     if (!player) {
-        std::cout << "  oh my got " << "\n";
-    }
+        Position pos = player->GetPos(); // GetPos 사용
+        x = pos.x;
+        y = pos.y;
 
-    Position pos = player->GetPos(); // GetPos 사용
-    int x = pos.x;
-    int y = pos.y;
-
-    if ((currentMapID == 1 && x < 0) || (currentMapID == 0 && x >= 800)) {
-        TransitionToNextMap(); // 경계를 넘으면 다음 맵으로 전환
-    }
-    else if ((currentMapID == 0 && x < 0)) {
-        player->SetPos(0, y); // SetPos 사용
-    }
-    else if ((currentMapID == 1 && x >= 800)) {
-        player->SetPos(800, y); // SetPos 사용
-    }
+        if ((currentMapID == 1 && x < 0) || (currentMapID == 0 && x >= 800)) {
+            TransitionToNextMap(); // 경계를 넘으면 다음 맵으로 전환
+        }
+        else if ((currentMapID == 0 && x < 0)) {
+            player->SetPos(0, y); // SetPos 사용
+        }
+        else if ((currentMapID == 1 && x >= 800)) {
+            player->SetPos(800, y); // SetPos 사용
+        }
+    } 
 
     // Update all objects managed by ObjectManager
     const auto& objects = ObjectManager::GetInstance().GetObjects();

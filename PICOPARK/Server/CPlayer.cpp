@@ -11,14 +11,29 @@ void CPlayer::Init() {
     size = 50;
     speed = 350;
     input = KT::None;
-    input_time = 0;
+
     playerID = 0;
     Ptype = PlayerType::P2;
 }
 
 void CPlayer::Update() {
 
-    float deltaTime = (float)input_time / 1000;
+    float serverDeltaTime = TimeManager::GetInstance().GetDeltaTime(); // 서버 시간 기반 deltaTime
+
+    float deltaTime;
+    if (remainingInputTime > 0) {
+        float inputDeltaTime = (float)remainingInputTime / 100000;
+        if (inputDeltaTime < serverDeltaTime) {
+            deltaTime = inputDeltaTime;
+        }
+        else {
+            deltaTime = serverDeltaTime;
+        }
+        remainingInputTime -= static_cast<uint64_t>(deltaTime * 100000);
+    }
+    else {
+        deltaTime = serverDeltaTime;
+    }
 
     // 중력 처리
     pos.y += jumpVelocity * deltaTime; // 점프 속도 적용
@@ -26,6 +41,7 @@ void CPlayer::Update() {
 
     // 좌우 이동 속도
     float moveSpeed = 0.0f;
+
     if (input==KT::Left) {
         moveSpeed = -speed * deltaTime; // 좌측 이동
     }
@@ -144,8 +160,6 @@ void CPlayer::Update() {
         jumpVelocity = -jumpStrength; // 위로 점프
         Pstate = PlayerState::Jump;
     }
-    input_time = 0;
-    input = KT::None;
 }
 
 

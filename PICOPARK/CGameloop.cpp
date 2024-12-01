@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "CGameloop.h"
 
 CGameloop::CGameloop() {}
@@ -16,40 +16,70 @@ void CGameloop::Update() {
     timeManager.Update();
     inputManager.Update();
 
-    static float timeAccumulator = 0.0f; // ½Ã°£ ´©Àû º¯¼ö
-    timeAccumulator += timeManager.GetDeltaTime();
+    static float timeAccumulator = 0.0f; // ì‹œê°„ ëˆ„ì  ë³€ìˆ˜
+    static uint64_t lastSentTime = 0; // ë§ˆì§€ë§‰ ì „ì†¡ëœ ì‹œê°„ (ì´ˆê¸°ê°’ì€ 0ìœ¼ë¡œ ì„¤ì •)
 
-    const float PACKET_INTERVAL = 1.0f / 30.0f; // ÃÊ´ç 30È¸ (¾à 33ms)
+    // í˜„ì¬ í´ë¼ì´ì–¸íŠ¸ ì‹œê°„ì„ ê°€ì ¸ì˜´ (ms ë‹¨ìœ„)
+    uint64_t currentTime = static_cast<uint64_t>(timeManager.GetDeltaTime() * 1000);
+
+    // ì´ˆê¸°í™”: ì²« íŒ¨í‚· ì „ì†¡ ì „ì— lastSentTimeì„ currentTimeìœ¼ë¡œ ì„¤ì •
+    if (lastSentTime == 0) {
+        lastSentTime = currentTime;
+    }
+
+    timeAccumulator += timeManager.GetDeltaTime();
+    const float PACKET_INTERVAL = 1.0f / 30.0f; // ì´ˆë‹¹ 30íšŒ (ì•½ 33ms)
 
     if (timeAccumulator >= PACKET_INTERVAL) {
-        // ÁÖ±âÀûÀ¸·Î¸¸ ÆĞÅ¶ Àü¼Û
+        // ì£¼ê¸°ì ìœ¼ë¡œ íŒ¨í‚· ì „ì†¡
+        bool keyflag = false;
         for (int key = 0; key < KEY_TYPE_COUNT; key++) {
             if (inputManager.IsKeyDown(key)) {
-                // Input_Packet »ı¼º
+                // Input_Packet ìƒì„±
                 Input_Packet inputPacket;
-                inputPacket.m_playerID = GetID(); // ÇÃ·¹ÀÌ¾î ID
-                inputPacket.inputType = static_cast<KT>(key); // Å° Å¸ÀÔ
+                inputPacket.m_playerID = GetID(); // í”Œë ˆì´ì–´ ID
+                inputPacket.inputType = static_cast<KT>(key); // í‚¤ íƒ€ì…
                 inputPacket.inputState = static_cast<KS>(inputManager.GetState(static_cast<KeyType>(key)));
-                inputPacket.inputTime = static_cast<uint64_t>(timeManager.GetDeltaTime() * 1000);
+                inputPacket.inputTime = currentTime - lastSentTime; // ìƒëŒ€ ì‹œê°„ ê³„ì‚°
 
-                // ÆĞÅ¶ Àü¼Û
+                // íŒ¨í‚· ì „ì†¡
                 if (serverSocket != INVALID_SOCKET) {
                     int sendResult = send(serverSocket, reinterpret_cast<const char*>(&inputPacket), sizeof(Input_Packet), 0);
                     if (sendResult == SOCKET_ERROR) {
                         std::cerr << "Failed to send input packet: " << WSAGetLastError() << std::endl;
                     }
                     else {
-                        std::cout << "Input packet sent for key: " << key << std::endl;
+                        std::cout << "Input packet sent for key: " << key << ", Input Time: " << inputPacket.inputTime << " ms" << std::endl;
                     }
+                }
+                keyflag = true;
+            }
+        }
+
+        if (!keyflag) {
+            // ì…ë ¥ì´ ì—†ì„ ê²½ìš° ê¸°ë³¸ íŒ¨í‚· ì „ì†¡
+            Input_Packet inputPacket;
+            inputPacket.m_playerID = GetID(); // í”Œë ˆì´ì–´ ID
+            inputPacket.inputType = KT::None; // í‚¤ íƒ€ì…
+            inputPacket.inputState = KS::None;
+            inputPacket.inputTime = 0; // ìƒëŒ€ ì‹œê°„ ê³„ì‚°
+
+            // íŒ¨í‚· ì „ì†¡
+            if (serverSocket != INVALID_SOCKET) {
+                int sendResult = send(serverSocket, reinterpret_cast<const char*>(&inputPacket), sizeof(Input_Packet), 0);
+                if (sendResult == SOCKET_ERROR) {
+                    std::cerr << "Failed to send input packet: " << WSAGetLastError() << std::endl;
                 }
             }
         }
 
-        timeAccumulator -= PACKET_INTERVAL; // °£°İ¸¸Å­ ½Ã°£ Â÷°¨
+        lastSentTime = currentTime; // ë§ˆì§€ë§‰ ì „ì†¡ ì‹œê°„ ê°±ì‹ 
+        timeAccumulator -= PACKET_INTERVAL; // ê°„ê²©ë§Œí¼ ì‹œê°„ ì°¨ê°
     }
 
     SceneManager.Update();
 }
+
 
 void CGameloop::Render() {
     HDC mdc;
@@ -58,25 +88,25 @@ void CGameloop::Render() {
 
     GetClientRect(hwnd, &rt);
     hdc = GetDC(hwnd);
-    mdc = CreateCompatibleDC(hdc); // ¸Ş¸ğ¸® DC »ı¼º
-    hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom); // ºñÆ®¸Ê »ı¼º
-    SelectObject(mdc, hBitmap); // ºñÆ®¸ÊÀ» ¸Ş¸ğ¸® DC¿¡ ¼±ÅÃ
+    mdc = CreateCompatibleDC(hdc); // ë©”ëª¨ë¦¬ DC ìƒì„±
+    hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom); // ë¹„íŠ¸ë§µ ìƒì„±
+    SelectObject(mdc, hBitmap); // ë¹„íŠ¸ë§µì„ ë©”ëª¨ë¦¬ DCì— ì„ íƒ
 
-    // ¹è°æÀ» Èò»ö »ç°¢ÇüÀ¸·Î Ã¤¿ò
+    // ë°°ê²½ì„ í°ìƒ‰ ì‚¬ê°í˜•ìœ¼ë¡œ ì±„ì›€
     Rectangle(mdc, 0, 0, rt.right, rt.bottom);
 
-    // ¾À ¸Å´ÏÀú ·»´õ¸µ
+    // ì”¬ ë§¤ë‹ˆì € ë Œë”ë§
     if (&SceneManager) {
         SceneManager.Render(mdc);
         OutputDebugString(L"SceneManager::Render called\n");
     }
 
-    // ¹é ¹öÆÛÀÇ ³»¿ëÀ» È­¸é¿¡ º¹»ç
+    // ë°± ë²„í¼ì˜ ë‚´ìš©ì„ í™”ë©´ì— ë³µì‚¬
     BitBlt(hdc, 0, 0, rt.right, rt.bottom, mdc, 0, 0, SRCCOPY);
 
-    // GDI °´Ã¼ ¿ø»óº¹±Í ¹× ÀÚ¿ø ÇØÁ¦
-    DeleteObject(hBitmap); // ºñÆ®¸Ê ÇØÁ¦
-    DeleteDC(mdc); // ¸Ş¸ğ¸® DC ÇØÁ¦
+    // GDI ê°ì²´ ì›ìƒë³µê·€ ë° ìì› í•´ì œ
+    DeleteObject(hBitmap); // ë¹„íŠ¸ë§µ í•´ì œ
+    DeleteDC(mdc); // ë©”ëª¨ë¦¬ DC í•´ì œ
     ReleaseDC(hwnd, hdc);
 }
 

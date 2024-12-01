@@ -77,7 +77,7 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
             LeaveCriticalSection(&SendQueueCS);
         }
 
-        //Sleep(1); // CPU 사용량 제어
+        Sleep(1); // CPU 사용량 제어
     }
 }
 
@@ -171,7 +171,6 @@ int main() {
             LeaveCriticalSection(&RecvQueueCS);
 
             // TempQueue 데이터 처리
-            bool processedInput = false; // 입력이 처리되었는지 확인하는 플래그
             while (!TempQueue.empty()) {
                 auto packet = std::move(TempQueue.front());
                 TempQueue.pop();
@@ -186,33 +185,27 @@ int main() {
                     std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
 
                     loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
-                    processedInput = true; // 입력 처리 플래그 설정
                 }
-            }
 
-            // 입력이 없는 경우에도 기본 상태 갱신
-            if (!processedInput) {
-                loop.Update(nullptr); // 입력이 없는 상태로 업데이트 호출
-            }
+                // 상태 패킷 생성 및 전송
+                auto objectPacket = std::make_unique<ObjectInfo_Packet>();
+                const auto& objects = ObjectManager::GetInstance().GetObjects();
 
-            // 상태 패킷 생성 및 전송
-            auto objectPacket = std::make_unique<ObjectInfo_Packet>();
-            const auto& objects = ObjectManager::GetInstance().GetObjects();
+                for (auto* obj : objects) {
+                    if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
+                        PlayerInfo playerInfo = player->GetPK();
+                        std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
+                            << ", X = " << playerInfo.m_x
+                            << ", Y = " << playerInfo.m_y << std::endl;
 
-            for (auto* obj : objects) {
-                if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
-                    PlayerInfo playerInfo = player->GetPK();
-                    std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
-                        << ", X = " << playerInfo.m_x
-                        << ", Y = " << playerInfo.m_y << std::endl;
-
-                    objectPacket->m_player = playerInfo; // 패킷에 추가
+                        objectPacket->m_player = playerInfo; // 패킷에 추가
+                    }
                 }
-            }
 
-            EnterCriticalSection(&SendQueueCS);
-            SendQueue.push(std::move(objectPacket));
-            LeaveCriticalSection(&SendQueueCS);
+                EnterCriticalSection(&SendQueueCS);
+                SendQueue.push(std::move(objectPacket));
+                LeaveCriticalSection(&SendQueueCS);
+            }
         }
 
         Sleep(1); // CPU 사용량 제어

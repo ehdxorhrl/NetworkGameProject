@@ -12,7 +12,8 @@ enum class KeyType
 	Space = VK_SPACE,
 
 	R = 'R',
-	r = 'r'
+	r = 'r',
+	None
 };
 
 enum class KeyState

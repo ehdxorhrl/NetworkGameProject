@@ -18,6 +18,7 @@
 #include <thread>
 #include <atlImage.h>
 #include <cstdint>
+#include <unordered_map>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -53,6 +54,16 @@ struct PlayerInfo
 	int m_size;
 	PlayerState m_state;
 	
+	bool operator==(const PlayerInfo& other) const {
+		return m_playerID == other.m_playerID &&
+			m_x == other.m_x &&
+			m_y == other.m_y &&
+			m_state == other.m_state;
+	}
+
+	bool operator!=(const PlayerInfo& other) const {
+		return !(*this == other);
+	}
 };
 
 enum class KT { Left_Mouse = VK_LBUTTON, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, R = 'R', None }; // Key type

@@ -54,7 +54,7 @@ public:
 
 	void SetInput(KT _input, uint64_t _time) {
 		input = _input;
-		input_time = _time;
+		remainingInputTime += _time;
 	};
 private:
 	PlayerType Ptype = PlayerType::None;
@@ -69,5 +69,5 @@ private:
 	int dir = 0;
 	uint32_t playerID;
 	KT input;
-	uint64_t input_time;
+	uint64_t remainingInputTime = 0;
 };

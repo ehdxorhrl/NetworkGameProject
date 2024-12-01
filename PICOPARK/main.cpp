@@ -205,8 +205,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         return 1;
     }
 
-    
-
     if (!hWnd) {
         MessageBox(nullptr, L"Call to CreateWindow failed!", L"Error", NULL);
         return 1;
