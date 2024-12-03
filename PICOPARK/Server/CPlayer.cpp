@@ -11,7 +11,7 @@ void CPlayer::Init() {
     size = 50;
     speed = 350;
     input = KT::None;
-
+    stageNum = 0;
     playerID = 0;
     Ptype = PlayerType::P2;
 }

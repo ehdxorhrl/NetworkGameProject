@@ -196,7 +196,8 @@ int main() {
                         PlayerInfo playerInfo = player->GetPK();
                         std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
                             << ", X = " << playerInfo.m_x
-                            << ", Y = " << playerInfo.m_y << std::endl;
+                            << ", Y = " << playerInfo.m_y
+                            << ", Num = " << playerInfo.m_stageNum << std::endl;
 
                         objectPacket->m_player = playerInfo; // 패킷에 추가
                     }

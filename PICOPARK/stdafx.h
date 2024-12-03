@@ -51,18 +51,8 @@ struct PlayerInfo
 	uint32_t m_playerID;
 	float m_x, m_y;
 	int m_size;
+	int m_stageNum;
 	PlayerState m_state;
-
-	bool operator==(const PlayerInfo& other) const {
-		return m_playerID == other.m_playerID &&
-			m_x == other.m_x &&
-			m_y == other.m_y &&
-			m_state == other.m_state;
-	}
-
-	bool operator!=(const PlayerInfo& other) const {
-		return !(*this == other);
-	}
 };
 
 enum class KT { Left_Mouse = VK_LBUTTON, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, R = 'R', None}; // Key type
@@ -74,6 +64,5 @@ enum class ST { None, Intro, Main, Stage1, Stage2, Stage3, Ending }; // Scene ty
 #include "TimeManager.h"
 #include "InputManager.h"
 #include "SceneManager.h"
-
 #include "CObject.h"
 

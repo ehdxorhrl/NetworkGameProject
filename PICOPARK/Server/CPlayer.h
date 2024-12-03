@@ -44,11 +44,11 @@ public:
 		myinfo.m_state = Pstate;
 		myinfo.m_x = pos.x;
 		myinfo.m_y = pos.y;
-
+		myinfo.m_stageNum = stageNum;
 		return myinfo;
 	}
 	PlayerType GetPtype() const { return Ptype; }
-	void SetID(uint32_t _id) {
+	void SetID(int _id) {
 		playerID = _id;
 	}
 
@@ -56,6 +56,9 @@ public:
 		input = _input;
 		remainingInputTime += _time;
 	};
+	void SetStageNum(uint32_t _stagenum) {
+		stageNum = _stagenum;
+	}
 private:
 	PlayerType Ptype = PlayerType::None;
 	PlayerState Pstate = PlayerState::Idle;
@@ -67,6 +70,7 @@ private:
 	bool isOnGround = false;
 	int Movement = 0;
 	int dir = 0;
+	int stageNum;
 	uint32_t playerID;
 	KT input;
 	uint64_t remainingInputTime = 0;

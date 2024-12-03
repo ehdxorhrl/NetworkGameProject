@@ -68,7 +68,6 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
                         OutputDebugString(L"Game Start Packet received.\n");
                         SceneManager& sceneManager = SceneManager::GetInstance();
                         sceneManager.ChangeScene(); // 씬 전환
-
                     }
                     else {
                         OutputDebugString(L"Game Start Packet indicates game not started.\n");
@@ -247,65 +246,3 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
     }
     return 0;
 }
-
-
-
-//bool SetSocketTimeout(SOCKET& sock, int timeoutInSeconds) {
-//    int timeoutInMillis = timeoutInSeconds * 1000;
-//    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutInMillis, sizeof(timeoutInMillis)) == SOCKET_ERROR) {
-//        std::cerr << "Failed to set recv timeout: " << WSAGetLastError() << std::endl;
-//        return false;
-//    }
-//    if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutInMillis, sizeof(timeoutInMillis)) == SOCKET_ERROR) {
-//        std::cerr << "Failed to set send timeout: " << WSAGetLastError() << std::endl;
-//        return false;
-//    }
-//    return true;
-//}
-//
-//// 패킷 전송 함수
-//void SendPacket(SOCKET& sock, const void* packet, size_t packetSize) {
-//    if (send(sock, reinterpret_cast<const char*>(packet), packetSize, 0) == SOCKET_ERROR) {
-//        std::cerr << "Failed to send packet: " << WSAGetLastError() << std::endl;
-//    }
-//    else
-//    {
-//        std::cout << "Success" << std::endl;
-//    }
-//}
-//
-//// 패킷 수신 함수
-//void RecvPackets(SOCKET& sock) {
-//    char recvBuffer[1024];
-//    int bytesReceived;
-//
-//    while (true) {
-//        bytesReceived = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
-//        if (bytesReceived == SOCKET_ERROR || bytesReceived == 0) {
-//            std::cerr << "recv() failed or connection closed: " << WSAGetLastError() << std::endl;
-//            break;
-//        }
-//
-//        uint8_t opCode = recvBuffer[0];
-//        std::cout << "Received packet with opCode: " << (int)opCode << ", size: " << bytesReceived << " bytes" << std::endl;
-//
-//        // 패킷 처리 로직 (예시)
-//        switch (opCode) {
-//        case 11: {
-//            GTime_Packet gTimePacket;
-//            memcpy(&gTimePacket, recvBuffer, sizeof(GTime_Packet));
-//            std::cout << "Game Time: " << gTimePacket.gameTime << "ms" << std::endl;
-//            break;
-//        }
-//        case 13: {
-//            ObjectInfo_Packet objectInfo;
-//            memcpy(&objectInfo, recvBuffer, sizeof(ObjectInfo_Packet));
-//            std::cout << "Received Object Info for Scene: " << (int)objectInfo.m_scene << std::endl;
-//            break;
-//        }
-//        default:
-//            std::cout << "Unknown opCode: " << (int)opCode << std::endl;
-//            break;
-//        }
-//    }
-//}

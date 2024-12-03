@@ -18,6 +18,7 @@ void Stage1::Init()
     ObjectManager& manager = ObjectManager::GetInstance();
     CPlayer* player1 = manager.AddPlayer(PlayerType::P1);
     player1->SetPos(150, 675); // P1 초기 위치 설정
+    player1->SetStageNum(0);
 
     //CPlayer* player2 = manager.AddPlayer(PlayerType::P2);
     //player2->SetPos(650, 675); // P2 초기 위치 설정
@@ -31,6 +32,8 @@ void Stage1::Init()
                 << ", Y: " << player->GetPos().y << "\n";
         }
     }
+
+    currentMapID = 0;
 }
 
 
@@ -39,7 +42,7 @@ void Stage1::Update()
     CPlayer* player = ObjectManager::GetInstance().GetPlayer(); // 플레이어 객체 가져오기
 
     int x, y;
-    if (!player) {
+    if (player) {
         Position pos = player->GetPos(); // GetPos 사용
         x = pos.x;
         y = pos.y;
@@ -71,22 +74,22 @@ void Stage1::TransitionToNextMap()
     {
         int x = (currentMapID == 1) ? 800 : 0;
         player->SetPos(x, pos.y);
+        player->SetStageNum(0);
     }
     if (currentMapID == 0)
         currentMapID = 1;
     else if (currentMapID == 1)
         currentMapID = 0;
-    else
-        return;
+    player->SetStageNum(currentMapID);
 }
 
 void Stage1::InitializeMap() {
     // 1-1 맵 데이터 설정
     int tempMap1[8][8] = {
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 3},
+        {0, 0, 0, 0, 5, 5, 5, 5},
+        {0, 0, 0, 5, 0, 0, 0, 0},
+        {2, 0, 5, 0, 0, 0, 0, 0},
         {1, 1, 1, 0, 1, 0, 1, 1},
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},

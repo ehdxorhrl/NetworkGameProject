@@ -26,12 +26,16 @@ public:
 	void UpdateAnimation(float deltaTime);
 	PlayerType GetPtype() { return Ptype; }
 	void Setinfo(ObjectInfo_Packet _info) { info = _info; }
+	int GetstageNum() { 
+		return stageNum; 
+	}
 private:
 	CImage PImage[5];
 	PlayerType Ptype = PlayerType::None;
 	PlayerState Pstate = PlayerState::Idle;
 	float animationTimer = 0.0f;
 	int Movement = 0;
-	int dir = 0;
+	int stageNum;
+	uint32_t playerID;
 	ObjectInfo_Packet info;
 };

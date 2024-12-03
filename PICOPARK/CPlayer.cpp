@@ -40,13 +40,16 @@ void CPlayer::Init() {
 
     size = 50;
     speed = 350;
+    stageNum = 0;
 }
 
 void CPlayer::Update() {
-    pos.x = info.m_player.m_x;
-    pos.y = info.m_player.m_y;
-    Pstate = info.m_player.m_state;
-
+    if (info.m_player.m_stageNum < 10) {
+        pos.x = info.m_player.m_x;
+        pos.y = info.m_player.m_y;
+        Pstate = info.m_player.m_state;
+        stageNum = info.m_player.m_stageNum;
+    }
 }
 
 

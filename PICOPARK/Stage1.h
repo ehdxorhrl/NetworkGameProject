@@ -17,12 +17,11 @@ public:
 
 public:
 	void InitializeMap();
-	void TransitionToNextMap();
 	int(*GetMapData(int mapID))[8] { return maps[mapID]; }
 	int GetCurrentMapID() const { return currentMapID; }
 private:
 	int currentMapID;
 	int maps[2][8][8]{};
-	CImage BlockImage;
+	CImage BlockImage[5];
 };
 
