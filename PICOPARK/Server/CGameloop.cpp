@@ -26,14 +26,14 @@ void CGameloop::Update(const Input_Packet* inputPacket) {
                 break;
             }
         }
-        std::cerr << inputPacket->m_playerID << "\n";
+        // std::cerr << inputPacket->m_playerID << "\n";
         // player가 nullptr인지 확인
         if (player) {
             player->SetInput(inputPacket->inputType, inputPacket->inputTime);
             Position pos = player->GetPos(); // GetPos 사용
-            std::cout << "Updated Player: ID = " << static_cast<int>(player->GetPtype())
+            /*std::cout << "Updated Player: ID = " << static_cast<int>(player->GetPtype())
                 << ", X = " << pos.x
-                << ", Y = " << pos.y << std::endl;
+                << ", Y = " << pos.y << std::endl;*/
         }
         else {
             std::cerr << "Error: Player with ID " << inputPacket->m_playerID << " not found.\n";

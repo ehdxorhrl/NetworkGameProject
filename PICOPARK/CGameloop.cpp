@@ -28,7 +28,8 @@ void CGameloop::Update() {
     }
 
     timeAccumulator += timeManager.GetDeltaTime();
-    const float PACKET_INTERVAL = 1.0f / 30.0f; // 초당 30회 (약 33ms)
+    //const float PACKET_INTERVAL = 1.0f / 30.0f; // 초당 30회 (약 33ms)
+    const float PACKET_INTERVAL = 0.0f; // 초당 30회 (약 33ms)
 
     if (timeAccumulator >= PACKET_INTERVAL) {
         // 주기적으로 패킷 전송
@@ -49,7 +50,7 @@ void CGameloop::Update() {
                         std::cerr << "Failed to send input packet: " << WSAGetLastError() << std::endl;
                     }
                     else {
-                        std::cout << "Input packet sent for key: " << key << ", Input Time: " << inputPacket.inputTime << " ms" << std::endl;
+                        //std::cout << "Input packet sent for key: " << key << ", Input Time: " << inputPacket.inputTime << " ms" << std::endl;
                     }
                 }
                 keyflag = true;

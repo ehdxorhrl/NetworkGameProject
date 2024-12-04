@@ -28,7 +28,7 @@ public:
         T* newObject = new T();
         if (newObject) {
             objects.push_back(newObject);
-            std::cout << "Object added: " << typeid(T).name() << std::endl;
+            //std::cout << "Object added: " << typeid(T).name() << std::endl;
         }
         else {
             std::cerr << "Error: Object creation failed!\n";

@@ -21,11 +21,11 @@
 
 #pragma comment(lib, "winmm.lib")
 
-const int NUM_PLAYERS = 2;
-const int MAPSIZE = 800;
-const int BLOCK_SIZE = 100; // 각 블록의 픽셀 크기
-const int CANNON_SIZE = 25;
-const int BUFFER_SIZE = 1024;
+constexpr int NUM_PLAYERS = 2;
+constexpr int MAPSIZE = 800;
+constexpr int BLOCK_SIZE = 100; // 각 블록의 픽셀 크기
+constexpr int CANNON_SIZE = 25;
+constexpr int BUFFER_SIZE = 1024;
 
 using namespace std;
 using std::vector;

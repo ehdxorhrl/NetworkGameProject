@@ -52,12 +52,12 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
         memcpy(packet.get(), buffer, sizeof(Input_Packet));
 
         // 디버깅 출력
-        std::cout << "Received Input_Packet from Player " << playerID << ":" << std::endl;
+       /* std::cout << "Received Input_Packet from Player " << playerID << ":" << std::endl;
         std::cout << "  Packet Type: " << static_cast<int>(packet->packetType) << std::endl;
         std::cout << "  Player ID: " << packet->m_playerID << std::endl;
         std::cout << "  Input Type: " << static_cast<int>(packet->inputType) << std::endl;
         std::cout << "  Input State: " << static_cast<int>(packet->inputState) << std::endl;
-        std::cout << "  inputTime: " << packet->inputTime << std::endl;
+        std::cout << "  inputTime: " << packet->inputTime << std::endl;*/
 
         // RecvQueue에 추가
         EnterCriticalSection(&RecvQueueCS);
@@ -77,7 +77,7 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
             LeaveCriticalSection(&SendQueueCS);
         }
 
-        Sleep(1); // CPU 사용량 제어
+        //Sleep(1); // CPU 사용량 제어
     }
 }
 
@@ -116,7 +116,7 @@ int main() {
 
         clientSockets[clientCount] = clientSocket;
 
-        std::cout << "Client with ID " << clientCount << " connected.\n";
+        //std::cout << "Client with ID " << clientCount << " connected.\n";
 
         int* param = new int(clientCount);
         communicationThreads[clientCount] = CreateThread(
@@ -146,14 +146,15 @@ int main() {
                 std::cerr << "Failed to send game start packet to Client ID " << i << ".\n";
             }
             else {
-                std::cout << "Game start packet sent to Client ID " << i << ".\n";
+                //std::cout << "Game start packet sent to Client ID " << i << ".\n";
             }
         }
     }
 
     // 패킷 전송 루프
     auto lastUpdate = std::chrono::high_resolution_clock::now();
-    const std::chrono::milliseconds updateInterval(30); // 약 33ms
+    //const std::chrono::milliseconds updateInterval(30); // 약 33ms
+    const std::chrono::milliseconds updateInterval(0); // 약 33ms
 
     while (true) {
         auto now = std::chrono::high_resolution_clock::now();
@@ -178,11 +179,11 @@ int main() {
                 // Input_Packet 처리
                 if (packet->packetType == 1) {
                     auto inputPacket = std::unique_ptr<Input_Packet>(static_cast<Input_Packet*>(packet.release()));
-                    std::cout << "Input Packet Details:\n";
+                   /* std::cout << "Input Packet Details:\n";
                     std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
                     std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
                     std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
-                    std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
+                    std::cout << "  Input Time: " << inputPacket->inputTime << "\n";*/
 
                     loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
                 }
@@ -194,9 +195,9 @@ int main() {
                 for (auto* obj : objects) {
                     if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
                         PlayerInfo playerInfo = player->GetPK();
-                        std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
+                        /*std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
                             << ", X = " << playerInfo.m_x
-                            << ", Y = " << playerInfo.m_y << std::endl;
+                            << ", Y = " << playerInfo.m_y << std::endl;*/
 
                         objectPacket->m_player = playerInfo; // 패킷에 추가
                     }
@@ -208,7 +209,7 @@ int main() {
             }
         }
 
-        Sleep(1); // CPU 사용량 제어
+        //Sleep(1); // CPU 사용량 제어
     }
 
     // 종료 처리

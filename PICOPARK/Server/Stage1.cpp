@@ -22,13 +22,13 @@ void Stage1::Init()
     //CPlayer* player2 = manager.AddPlayer(PlayerType::P2);
     //player2->SetPos(650, 675); // P2 초기 위치 설정
 
-    std::cout << "Players initialized:\n";
+    //std::cout << "Players initialized:\n";
     for (const auto* obj : manager.GetObjects()) {
         if (const auto* player = dynamic_cast<const CPlayer*>(obj)) {
-            std::cout << "  Player ID: " << player->GetPK().m_playerID
+            /*std::cout << "  Player ID: " << player->GetPK().m_playerID
                 << ", Type: " << static_cast<int>(player->GetPtype())
                 << ", X: " << player->GetPos().x
-                << ", Y: " << player->GetPos().y << "\n";
+                << ", Y: " << player->GetPos().y << "\n";*/
         }
     }
 }
