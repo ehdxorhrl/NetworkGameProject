@@ -12,8 +12,6 @@ void CPlayer::Init() {
     speed = 350;
     input = KT::None;
     stageNum = 0;
-    playerID = 0;
-    Ptype = PlayerType::P2;
 }
 
 void CPlayer::Update() {
@@ -53,9 +51,9 @@ void CPlayer::Update() {
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             if (Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene())) {
-                int(*currentMap)[8] = stage->GetMapData(stage->GetCurrentMapID());
+                int(*currentMap)[8] = stage->GetMapData(stageNum);
 
-                if (currentMap[i][j] != 1) continue; // 블록이 없는 경우 스킵
+                if (currentMap[i][j] != 1 && currentMap[i][j] != 5) continue; // 블록이 없는 경우 스킵
 
                 // 블록의 좌표 계산
                 float blockLeft = j * BLOCK_SIZE;
@@ -104,9 +102,9 @@ void CPlayer::Update() {
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             if (Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene())) {
-                int(*currentMap)[8] = stage->GetMapData(stage->GetCurrentMapID());
+                int(*currentMap)[8] = stage->GetMapData(stageNum);
 
-                if (currentMap[i][j] != 1) continue; // 블록이 없는 경우 스킵
+                if (currentMap[i][j] != 1 && currentMap[i][j] != 5) continue; // 블록이 없는 경우 스킵
 
                 // 블록의 좌표 계산
                 float blockTop = i * BLOCK_SIZE;
@@ -149,17 +147,18 @@ void CPlayer::Update() {
         if (isLanding) break;
     }
 
-    // 공중 상태 처리
-    if (!isLanding) {
-        Pstate = PlayerState::Jump; // 공중 상태
-    }
-
     // 점프 처리
     if (input==KT::Up && !isJumping) {
         isJumping = true;
         jumpVelocity = -jumpStrength; // 위로 점프
         Pstate = PlayerState::Jump;
     }
+
+    // 공중 상태 처리
+    if (!isLanding) {
+        Pstate = PlayerState::Jump; // 공중 상태
+    }
+
 }
 
 

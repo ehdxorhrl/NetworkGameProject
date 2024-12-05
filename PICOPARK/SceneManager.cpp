@@ -37,10 +37,10 @@ void SceneManager::Update()
 		ChangeScene();
 }
 
-void SceneManager::Render(HDC hdc)
+void SceneManager::Render(HDC hdc, uint32_t mapid)
 {
 	if (scene)
-		scene->Render(hdc);
+		scene->Render(hdc, mapid);
 }
 
 void SceneManager::Clear()

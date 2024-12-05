@@ -22,81 +22,49 @@ DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
     char buffer[BUFFER_SIZE];
 
     while (true) {
-        // 서버에서 데이터 수신
         int bytesReceived = recv(g_serverSocket, buffer, sizeof(buffer), 0);
 
         if (bytesReceived > 0) {
-            uint8_t packetType = buffer[0]; // 첫 바이트는 packetType으로 가정
-            switch (static_cast<int>(packetType)) {          
+            uint8_t packetType = buffer[0]; // 패킷 타입
+            std::unique_ptr<BasePacket> packet;
+
+            switch (packetType) {
             case 12: { // PlayerIDResponsePacket
-                if (bytesReceived == sizeof(PlayerIDResponsePacket)) {
-                    PlayerIDResponsePacket idResponse;
-                    memcpy(&idResponse, buffer, sizeof(PlayerIDResponsePacket));
-                    if (idResponse.isSuccess) {
-                        loop.SetID(idResponse.m_playerID);
-                    }
-                    else {
-                        OutputDebugString(L"Failed to receive Player ID.\n");
-                        closesocket(g_serverSocket);
-                        return 1;
-                    }
-                }
-                else {
-                    OutputDebugString(L"Invalid PlayerIDResponsePacket size.\n");
-                }
+                packet = std::make_unique<PlayerIDResponsePacket>();
+                memcpy(packet.get(), buffer, sizeof(PlayerIDResponsePacket));
                 break;
             }
             case 13: { // ObjectInfo_Packet
-                if (bytesReceived == sizeof(ObjectInfo_Packet)) {
-                    ObjectInfo_Packet objinfo;
-                    memcpy(&objinfo, buffer, sizeof(ObjectInfo_Packet));
-                    const auto& objects = ObjectManager::GetInstance().GetObjects();
-                    for (auto* obj : objects) {
-                        if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
-                            player->Setinfo(objinfo);
-                            break;
-                        }
-                    }
-                }
+                packet = std::make_unique<ObjectInfo_Packet>();
+                memcpy(packet.get(), buffer, sizeof(ObjectInfo_Packet));
                 break;
             }
-            case 102: { // GameStart_Packet           
-                if (bytesReceived == sizeof(GameStart_Packet)) {
-                    GameStart_Packet startPacket;
-                    memcpy(&startPacket, buffer, sizeof(GameStart_Packet));
-                    if (startPacket.isGameStarted) {
-                        OutputDebugString(L"Game Start Packet received.\n");
-                        SceneManager& sceneManager = SceneManager::GetInstance();
-                        sceneManager.ChangeScene(); // 씬 전환
-                    }
-                    else {
-                        OutputDebugString(L"Game Start Packet indicates game not started.\n");
-                    }
-                }
-                else {
-                    OutputDebugString(L"Invalid GameStart_Packet size.\n");
-                }
+            case 102: { // GameStart_Packet
+                packet = std::make_unique<GameStart_Packet>();
+                memcpy(packet.get(), buffer, sizeof(GameStart_Packet));
                 break;
-            }      
+            }
             default:
                 OutputDebugString(L"Unhandled packet type.\n");
-                break;
+                continue;
             }
+
+            EnterCriticalSection(&loop.UpdateCS);
+            loop.RecvQueue.push(std::move(packet));
+            LeaveCriticalSection(&loop.UpdateCS);
         }
-        else if (bytesReceived == 0) {
-            OutputDebugString(L"Server closed connection.\n");
+        else if (bytesReceived <= 0) {
+            if (bytesReceived == 0) {
+                OutputDebugString(L"Server closed connection.\n");
+            }
+            else {
+                OutputDebugString(L"Socket error.\n");
+            }
             break;
         }
-        else if (bytesReceived == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            if (error != WSAETIMEDOUT) {
-                OutputDebugString(L"Socket error, closing thread.\n");
-                break;
-            }
-        }
 
-       // Sleep(1); // CPU 사용량 제어
     }
+
     return 0;
 }
 
@@ -135,6 +103,7 @@ bool ConnectToServer(const char* serverIP, int port) {
 
 // WinMain 함수
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+
     HWND hWnd;
     MSG Message;
     WNDCLASSEX wcex; // 구조체 선언
@@ -173,8 +142,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         nullptr
     );
 
+
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
+
+    loop.Init(hWnd);
 
     // 명령줄 파라미터 파싱
     std::wstring cmdLine(lpCmdLine);
@@ -222,7 +194,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             loop.Render();
         }
 
-        Sleep(1); // CPU 사용량 제어
     }
 
     // 종료 처리
@@ -236,7 +207,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
     switch (iMessage) {
     case WM_CREATE:
-        loop.Init(hWnd);
         break;
     case WM_DESTROY:
         PostQuitMessage(0);

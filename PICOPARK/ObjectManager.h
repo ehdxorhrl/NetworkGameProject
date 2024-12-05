@@ -22,9 +22,9 @@ public:
     const std::vector<CObject*>& GetObjects() const { return objects; }
 
     // 템플릿 메서드: 객체 생성 및 추가
-    template<typename T>
-    T* CreateObject() {
-        T* newObject = new T();
+    template<typename T, typename... Args>
+    T* CreateObject(Args&&... args) {
+        T* newObject = new T(std::forward<Args>(args)...);
         newObject->Init();
         Add(newObject);
         return newObject;
@@ -37,6 +37,18 @@ public:
             }
         }
         return nullptr; // 플레이어 객체가 없는 경우
+    }
+
+    CPlayer* GetPlayerByID(uint32_t playerID) {
+        const auto& objects = GetObjects();
+        for (auto* obj : objects) {
+            if (auto* player = dynamic_cast<CPlayer*>(obj)) {
+                if (player->GetPlayerID() == playerID) {
+                    return player;
+                }
+            }
+        }
+        return nullptr; // 찾지 못하면 nullptr 반환
     }
 
     // 싱글톤이므로 복사 및 이동 금지

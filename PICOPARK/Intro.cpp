@@ -21,7 +21,7 @@ void Intro::Update()
 		shouldChangeScene = true;
 }
 
-void Intro::Render(HDC hdc)
+void Intro::Render(HDC hdc, uint32_t mapid)
 {
 	Background.Draw(hdc, 0, 0, MAPSIZE, MAPSIZE, 0, 0, 800, 800);
 }

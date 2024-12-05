@@ -9,7 +9,7 @@ public:
 
 	virtual void Init() = 0;
 	virtual void Update() = 0;
-	virtual void Render(HDC hdc) = 0;
+	virtual void Render(HDC hdc, uint32_t mapid) = 0;
 	bool IsSceneChangeRequired() { return shouldChangeScene; }
 
 protected:

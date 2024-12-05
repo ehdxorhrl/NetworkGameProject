@@ -19,6 +19,8 @@ CGameloop loop;
 
 int cnt = 0;
 
+void SendPlayerID(SOCKET clientSocket, uint32_t playerID);
+
 // 임계영역
 CRITICAL_SECTION RecvQueueCS;
 CRITICAL_SECTION SendQueueCS;
@@ -52,12 +54,12 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
         memcpy(packet.get(), buffer, sizeof(Input_Packet));
 
         // 디버깅 출력
-        std::cout << "Received Input_Packet from Player " << playerID << ":" << std::endl;
-        std::cout << "  Packet Type: " << static_cast<int>(packet->packetType) << std::endl;
-        std::cout << "  Player ID: " << packet->m_playerID << std::endl;
-        std::cout << "  Input Type: " << static_cast<int>(packet->inputType) << std::endl;
-        std::cout << "  Input State: " << static_cast<int>(packet->inputState) << std::endl;
-        std::cout << "  inputTime: " << packet->inputTime << std::endl;
+        //std::cout << "Received Input_Packet from Player " << playerID << ":" << std::endl;
+        //std::cout << "  Packet Type: " << static_cast<int>(packet->packetType) << std::endl;
+        //std::cout << "  Player ID: " << packet->m_playerID << std::endl;
+        //std::cout << "  Input Type: " << static_cast<int>(packet->inputType) << std::endl;
+        //std::cout << "  Input State: " << static_cast<int>(packet->inputState) << std::endl;
+        //std::cout << "  inputTime: " << packet->inputTime << std::endl;
 
         // RecvQueue에 추가
         EnterCriticalSection(&RecvQueueCS);
@@ -115,6 +117,10 @@ int main() {
         }
 
         clientSockets[clientCount] = clientSocket;
+
+        uint32_t playerID = static_cast<uint32_t>(clientCount); // 간단히 clientCount를 ID로 사용
+        SendPlayerID(clientSocket, playerID);
+
 
         std::cout << "Client with ID " << clientCount << " connected.\n";
 
@@ -178,11 +184,11 @@ int main() {
                 // Input_Packet 처리
                 if (packet->packetType == 1) {
                     auto inputPacket = std::unique_ptr<Input_Packet>(static_cast<Input_Packet*>(packet.release()));
-                    std::cout << "Input Packet Details:\n";
-                    std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
-                    std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
-                    std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
-                    std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
+                    //std::cout << "Input Packet Details:\n";
+                    //std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
+                    //std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
+                    //std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
+                    //std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
 
                     loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
                 }
@@ -191,18 +197,18 @@ int main() {
                 auto objectPacket = std::make_unique<ObjectInfo_Packet>();
                 const auto& objects = ObjectManager::GetInstance().GetObjects();
 
+                int index = 0;
                 for (auto* obj : objects) {
                     if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
-                        PlayerInfo playerInfo = player->GetPK();
-                        std::cout << "Sending Player Info: ID = " << playerInfo.m_playerID
-                            << ", X = " << playerInfo.m_x
-                            << ", Y = " << playerInfo.m_y
-                            << ", Num = " << playerInfo.m_stageNum << std::endl;
-
-                        objectPacket->m_player = playerInfo; // 패킷에 추가
+                        objectPacket->m_player[index] = player->GetPK();
+                        index++;
+                        std::cout << "  Player ID: " << player->GetPK().m_playerID
+                            << ", Type: " << static_cast<int>(player->GetPtype())
+                            << ", X: " << player->GetPos().x
+                            << ", Y: " << player->GetPos().y << "\n"
+                            << ", ID: " << player->GetID() << "\n";
                     }
                 }
-
                 EnterCriticalSection(&SendQueueCS);
                 SendQueue.push(std::move(objectPacket));
                 LeaveCriticalSection(&SendQueueCS);
@@ -233,4 +239,20 @@ int main() {
     WSACleanup();
 
     return 0;
+}
+
+
+void SendPlayerID(SOCKET clientSocket, uint32_t playerID) {
+    PlayerIDResponsePacket idResponse;
+    idResponse.m_playerID = playerID;
+    idResponse.isSuccess = true;
+
+    // Player ID 패킷 전송
+    int sendResult = send(clientSocket, reinterpret_cast<char*>(&idResponse), sizeof(PlayerIDResponsePacket), 0);
+    if (sendResult == SOCKET_ERROR) {
+        std::cerr << "Failed to send Player ID packet: " << WSAGetLastError() << "\n";
+    }
+    else {
+        std::cout << "Player ID packet sent: ID = " << playerID << "\n";
+    }
 }

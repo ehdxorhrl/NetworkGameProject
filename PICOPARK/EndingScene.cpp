@@ -28,7 +28,7 @@ void EndingScene::Update()
     }
 }
 
-void EndingScene::Render(HDC hdc)
+void EndingScene::Render(HDC hdc, uint32_t mapid)
 {
     Background.Draw(hdc, 0, 0, MAPSIZE, MAPSIZE, 0, 0, 800, 800);
 }

@@ -23,7 +23,7 @@ void LoadingScene::Update()
 
 }
 
-void LoadingScene::Render(HDC hdc)
+void LoadingScene::Render(HDC hdc, uint32_t mapid)
 {
 	OutputDebugString(L"LoadingScene::Render called\n");
 	LoadingImage.Draw(hdc, 0, 0, MAPSIZE, MAPSIZE, 0, 0, 800, 800);

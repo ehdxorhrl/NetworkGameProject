@@ -28,22 +28,19 @@ public:
         T* newObject = new T();
         if (newObject) {
             objects.push_back(newObject);
-            std::cout << "Object added: " << typeid(T).name() << std::endl;
-        }
-        else {
-            std::cerr << "Error: Object creation failed!\n";
         }
         return newObject;
     }
 
-    CPlayer* GetPlayer() const
-    {
+    CPlayer* GetPlayerByID(uint32_t playerID) const {
         for (auto* obj : objects) {
             if (auto* player = dynamic_cast<CPlayer*>(obj)) {
-                return player;
+                if (player->GetID() == playerID) {
+                    return player;
+                }
             }
         }
-        std::cerr << "Error: No player object found in ObjectManager!\n";
+        std::cerr << "Player with ID " << playerID << " not found.\n";
         return nullptr;
     }
 

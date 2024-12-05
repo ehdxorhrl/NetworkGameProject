@@ -31,7 +31,7 @@ public:
     // 주요 기능
     void Init();
     void Update();
-    void Render(HDC hdc);
+    void Render(HDC hdc, uint32_t mapid);
     void Clear();
 
 public:

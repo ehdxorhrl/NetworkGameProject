@@ -5,9 +5,9 @@ const float animationInterval = 0.2;
 
 enum class PlayerType
 {
-	None,
-	P1, // 현재 플레이어
-	P2 // 다른 네트워크 플레이어
+	P1,
+	P2,
+	None
 };
 
 class CPlayer :public CObject
@@ -47,7 +47,10 @@ public:
 		myinfo.m_stageNum = stageNum;
 		return myinfo;
 	}
+	int GetID() const { return playerID; }
+
 	PlayerType GetPtype() const { return Ptype; }
+
 	void SetID(int _id) {
 		playerID = _id;
 	}
@@ -58,6 +61,10 @@ public:
 	};
 	void SetStageNum(uint32_t _stagenum) {
 		stageNum = _stagenum;
+	}
+
+	uint32_t GetStageNum() {
+		return stageNum;
 	}
 private:
 	PlayerType Ptype = PlayerType::None;

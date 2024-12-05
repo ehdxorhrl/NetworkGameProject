@@ -36,7 +36,7 @@ struct PlayerIDResponsePacket : BasePacket {
 
 // Object Info Packet
 struct ObjectInfo_Packet : BasePacket {
-    PlayerInfo m_player;
+    PlayerInfo m_player[2];
     ObjectInfo_Packet() { packetType = 13; }
 };
 

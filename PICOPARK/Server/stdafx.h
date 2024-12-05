@@ -52,7 +52,7 @@ struct PlayerInfo
 	uint32_t m_playerID;
 	float m_x, m_y;
 	int m_size;
-	int m_stageNum;
+	uint32_t m_stageNum;
 	PlayerState m_state;
 };
 

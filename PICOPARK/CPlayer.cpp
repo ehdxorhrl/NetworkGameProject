@@ -44,12 +44,7 @@ void CPlayer::Init() {
 }
 
 void CPlayer::Update() {
-    if (info.m_player.m_stageNum < 10) {
-        pos.x = info.m_player.m_x;
-        pos.y = info.m_player.m_y;
-        Pstate = info.m_player.m_state;
-        stageNum = info.m_player.m_stageNum;
-    }
+    
 }
 
 
@@ -60,4 +55,13 @@ void CPlayer::UpdateAnimation(float deltaTime) {
         Movement = (Movement + 1) % 2;
         animationTimer = 0.0f;
     }
+}
+
+void CPlayer::Setinfo(ObjectInfo_Packet* _info) {
+    pos.x = _info->m_player[playerID].m_x;
+    pos.y = _info->m_player[playerID].m_y;
+    Pstate = _info->m_player[playerID].m_state;
+    stageNum = _info->m_player[playerID].m_stageNum;
+
+    // 패킷 포인터의 메모리 해제
 }

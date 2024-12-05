@@ -1,9 +1,15 @@
 ﻿#include "stdafx.h"
 #include "CGameloop.h"
+#include "CPlayer.h"
+#include "ObjectManager.h"
 
-CGameloop::CGameloop() {}
+CGameloop::CGameloop() {
+    InitializeCriticalSection(&UpdateCS);
+}
 
-CGameloop::~CGameloop() {}
+CGameloop::~CGameloop() {
+    DeleteCriticalSection(&UpdateCS);
+}
 
 void CGameloop::Init(HWND hWnd) {
     hwnd = hWnd;
@@ -45,12 +51,6 @@ void CGameloop::Update() {
                 // 패킷 전송
                 if (serverSocket != INVALID_SOCKET) {
                     int sendResult = send(serverSocket, reinterpret_cast<const char*>(&inputPacket), sizeof(Input_Packet), 0);
-                    if (sendResult == SOCKET_ERROR) {
-                        std::cerr << "Failed to send input packet: " << WSAGetLastError() << std::endl;
-                    }
-                    else {
-                        std::cout << "Input packet sent for key: " << key << ", Input Time: " << inputPacket.inputTime << " ms" << std::endl;
-                    }
                 }
                 keyflag = true;
             }
@@ -67,9 +67,6 @@ void CGameloop::Update() {
             // 패킷 전송
             if (serverSocket != INVALID_SOCKET) {
                 int sendResult = send(serverSocket, reinterpret_cast<const char*>(&inputPacket), sizeof(Input_Packet), 0);
-                if (sendResult == SOCKET_ERROR) {
-                    std::cerr << "Failed to send input packet: " << WSAGetLastError() << std::endl;
-                }
             }
         }
 
@@ -77,7 +74,64 @@ void CGameloop::Update() {
         timeAccumulator -= PACKET_INTERVAL; // 간격만큼 시간 차감
     }
 
-    SceneManager.Update();
+    std::queue<std::unique_ptr<BasePacket>> TempQueue;
+
+    EnterCriticalSection(&UpdateCS);
+    while (!RecvQueue.empty()) {
+        TempQueue.push(std::move(RecvQueue.front()));
+        RecvQueue.pop();
+    }
+    LeaveCriticalSection(&UpdateCS);
+
+
+    CPlayer* currentPlayer = ObjectManager::GetInstance().GetPlayerByID(playerID);
+    if (currentPlayer && (currentMapID != currentPlayer->GetstageNum())) {
+        currentMapID = currentPlayer->GetstageNum();
+    }
+
+    if (TempQueue.empty()) {
+        SceneManager.Update();
+        return;
+    }
+
+    while (!TempQueue.empty()) {
+        auto packet = std::move(TempQueue.front());
+        TempQueue.pop();
+
+        // 패킷 타입에 따라 처리
+        switch (packet->packetType) {
+        case 12: { // PlayerIDResponsePacket
+            auto* idResponse = static_cast<PlayerIDResponsePacket*>(packet.get());
+            if (idResponse->isSuccess) {
+                SetID(idResponse->m_playerID);
+            }
+            break;
+        }
+        case 13: { // ObjectInfo_Packet
+            auto* objInfo = static_cast<ObjectInfo_Packet*>(packet.get());
+
+            for (int i = 0; i < 2; ++i) {
+                CPlayer* player = ObjectManager::GetInstance().GetPlayerByID(objInfo->m_player[i].m_playerID);
+                if (player) {
+                    player->Setinfo(objInfo);
+                }
+            }
+            SceneManager.Update();
+            break;
+        }
+
+        case 102: { // GameStart_Packet
+            auto* startPacket = static_cast<GameStart_Packet*>(packet.get());
+            if (startPacket->isGameStarted) {
+                SceneManager.ChangeScene(); // 씬 전환
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
 }
 
 
@@ -97,8 +151,7 @@ void CGameloop::Render() {
 
     // 씬 매니저 렌더링
     if (&SceneManager) {
-        SceneManager.Render(mdc);
-        OutputDebugString(L"SceneManager::Render called\n");
+        SceneManager.Render(mdc, currentMapID);
     }
 
     // 백 버퍼의 내용을 화면에 복사

@@ -15,7 +15,7 @@ public:
 
 public:
 	void InitializeMap();
-	void TransitionToNextMap();
+	void TransitionToNextMap(CPlayer* player);
 	int(*GetMapData(int mapID))[8] { return maps[mapID]; }
 	int GetCurrentMapID() const { return currentMapID; }
 private:

@@ -9,7 +9,7 @@ public:
 
 	void Init() override;
 	void Update() override;
-	void Render(HDC hdc) override;
+	void Render(HDC hdc, uint32_t mapid) override;
 private:
 	CImage Background;
 };
