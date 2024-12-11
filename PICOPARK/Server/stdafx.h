@@ -42,9 +42,8 @@ enum class PlayerState
 	Idle,
 	Move,
 	Jump,
-	MoveAndJump,
 	Die,
-	Shooting
+	intothedoor
 };
 
 struct PlayerInfo
@@ -54,7 +53,10 @@ struct PlayerInfo
 	int m_size;
 	uint32_t m_stageNum;
 	PlayerState m_state;
+	int m_Movement;
+	bool m_haskey;
 };
+
 
 enum class KT { Left_Mouse = VK_LBUTTON, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, R = 'R', None }; // Key type
 enum class KS { None, Press, Down, Up, End }; // Key state

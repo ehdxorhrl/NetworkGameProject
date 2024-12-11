@@ -3,6 +3,8 @@
 #include "CScene.h"
 #include "LoadingScene.h"    // LoadingScene 클래스 헤더 파일
 #include "Stage1.h"
+#include "Stage2.h"
+#include "Stage3.h"
 #include "CGameloop.h"
 
 void SceneManager::Init()
@@ -26,6 +28,7 @@ void SceneManager::Update()
 {
 	if (scene)
 		scene->Update();
+
 	if (scene->IsSceneChangeRequired())
 		ChangeScene();
 }
@@ -42,14 +45,13 @@ void SceneManager::ChangeScene()
 	switch (sceneType)
 	{
 	case SceneType::Stage1:
-		nScene = new Stage1();
-		nSceneType = SceneType::Stage1;
+		nScene = new Stage2();
+		nSceneType = SceneType::Stage2;
 		break;
-		//case SceneType::Stage1:
-		//	nScene = new EndingScene();
-		//	nSceneType = SceneType::Ending;
-		//	break;
-		//}
+	case SceneType::Stage2:
+		nScene = new Stage3();
+		nSceneType = SceneType::Stage3;
+		break;
 
 	}
 

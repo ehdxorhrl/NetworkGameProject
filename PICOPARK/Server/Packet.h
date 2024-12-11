@@ -37,6 +37,7 @@ struct PlayerIDResponsePacket : BasePacket {
 // Object Info Packet
 struct ObjectInfo_Packet : BasePacket {
     PlayerInfo m_player[2];
+    bool openthedoor;
     ObjectInfo_Packet() { packetType = 13; }
 };
 
@@ -151,7 +152,7 @@ struct GameStart_Packet : BasePacket {
 //
 //struct ObjectInfo_Packet // 오브젝트 정보 패킷 type = 13
 //{
-//  //  uint8_t packetType = 13;
+//    uint8_t packetType = 13;
 //    SceneType m_scene;
 //    PlayerInfo m_player[2];
 //    KeyInfo m_key;

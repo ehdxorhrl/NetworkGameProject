@@ -19,9 +19,11 @@ public:
 	void InitializeMap();
 	int(*GetMapData(int mapID))[8] { return maps[mapID]; }
 	int GetCurrentMapID() const { return currentMapID; }
+    void IsDoorOpen() { openDoor = true; }
 private:
 	int currentMapID;
 	int maps[2][8][8]{};
-	CImage BlockImage[5];
+	CImage BlockImage[6];
+	bool openDoor = false;
 };
 

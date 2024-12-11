@@ -37,6 +37,8 @@ struct PlayerIDResponsePacket : BasePacket {
 // Object Info Packet
 struct ObjectInfo_Packet : BasePacket {
     PlayerInfo m_player[2];
+    bool openthedoor;
+
     ObjectInfo_Packet() { packetType = 13; }
 };
 

@@ -151,6 +151,8 @@
     </ClCompile>
     <ClCompile Include="server_v3.cpp" />
     <ClCompile Include="Stage1.cpp" />
+    <ClCompile Include="Stage2.cpp" />
+    <ClCompile Include="Stage3.cpp" />
     <ClCompile Include="TimeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +166,8 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Stage1.h" />
+    <ClInclude Include="Stage2.h" />
+    <ClInclude Include="Stage3.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TimeManager.h" />
   </ItemGroup>

@@ -33,10 +33,12 @@ public:
 		pos.x = x;
 		pos.y = y;
 	}
+	KT GetKT() { return input; }
 
 	PlayerState GetPstate() const{
 		return Pstate;
 	}
+	void SetPstate(PlayerState _Pstate) { Pstate = _Pstate; }
 	PlayerInfo GetPK() const {
 		PlayerInfo myinfo;
 		myinfo.m_playerID = playerID;
@@ -45,6 +47,8 @@ public:
 		myinfo.m_x = pos.x;
 		myinfo.m_y = pos.y;
 		myinfo.m_stageNum = stageNum;
+		myinfo.m_Movement = Movement;
+		myinfo.m_haskey = haskey;
 		return myinfo;
 	}
 	int GetID() const { return playerID; }
@@ -56,9 +60,14 @@ public:
 	}
 
 	void SetInput(KT _input, uint64_t _time) {
-		input = _input;
-		remainingInputTime += _time;
-	};
+		if (input != _input) {
+			input = _input;
+			remainingInputTime = _time;
+		}
+		else {
+			remainingInputTime += _time;
+		}
+	}
 	void SetStageNum(uint32_t _stagenum) {
 		stageNum = _stagenum;
 	}
@@ -66,6 +75,8 @@ public:
 	uint32_t GetStageNum() {
 		return stageNum;
 	}
+	void Sethaskey(bool _flag) { haskey = _flag; }
+	bool Gethaskey() {return haskey;}
 private:
 	PlayerType Ptype = PlayerType::None;
 	PlayerState Pstate = PlayerState::Idle;
@@ -75,6 +86,7 @@ private:
 	float jumpStrength = 450.0f;
 	bool isJumping = false;
 	bool isOnGround = false;
+	bool haskey = false;
 	int Movement = 0;
 	int dir = 0;
 	int stageNum;

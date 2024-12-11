@@ -10,11 +10,13 @@ CPlayer::~CPlayer() {}
 void CPlayer::Init() {
     size = 50;
     speed = 350;
-    input = KT::None;
     stageNum = 0;
 }
 
 void CPlayer::Update() {
+
+    if (Pstate == PlayerState::intothedoor)
+        return;
 
     float serverDeltaTime = TimeManager::GetInstance().GetDeltaTime(); // 서버 시간 기반 deltaTime
 
@@ -23,13 +25,11 @@ void CPlayer::Update() {
         float inputDeltaTime = (float)remainingInputTime / 100000;
         if (inputDeltaTime < serverDeltaTime) {
             deltaTime = inputDeltaTime;
-        }
-        else {
+        } else {
             deltaTime = serverDeltaTime;
         }
         remainingInputTime -= static_cast<uint64_t>(deltaTime * 100000);
-    }
-    else {
+    } else {
         deltaTime = serverDeltaTime;
     }
 
@@ -40,11 +40,18 @@ void CPlayer::Update() {
     // 좌우 이동 속도
     float moveSpeed = 0.0f;
 
-    if (input==KT::Left) {
+    if (input == KT::Left) {
         moveSpeed = -speed * deltaTime; // 좌측 이동
-    }
-    else if (input == KT::Right) {
+        if (Pstate != PlayerState::Jump) { // 점프 상태가 아닐 때만 Move로 전환
+            Pstate = PlayerState::Move;
+            UpdateAnimation(serverDeltaTime);
+        }
+    } else if (input == KT::Right) {
         moveSpeed = speed * deltaTime; // 우측 이동
+        if (Pstate != PlayerState::Jump) { // 점프 상태가 아닐 때만 Move로 전환
+            Pstate = PlayerState::Move;
+            UpdateAnimation(serverDeltaTime);
+        }
     }
 
     // 좌우 충돌 검사
@@ -53,7 +60,7 @@ void CPlayer::Update() {
             if (Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene())) {
                 int(*currentMap)[8] = stage->GetMapData(stageNum);
 
-                if (currentMap[i][j] != 1 && currentMap[i][j] != 5) continue; // 블록이 없는 경우 스킵
+                if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
 
                 // 블록의 좌표 계산
                 float blockLeft = j * BLOCK_SIZE;
@@ -76,8 +83,7 @@ void CPlayer::Update() {
                         float gap = blockRight - (pos.x - size / 2);
                         moveSpeed = gap; // 이동 간격 조정
                     }
-                }
-                else if (moveSpeed > 0.f) { // 우측 이동
+                } else if (moveSpeed > 0.f) { // 우측 이동
                     if (pos.x + size / 2 > blockLeft) continue; // 왼쪽에 있는 블록 제외
 
                     if (abs(blockLeft - (pos.x + size / 2)) < 0.001f) {
@@ -104,7 +110,7 @@ void CPlayer::Update() {
             if (Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene())) {
                 int(*currentMap)[8] = stage->GetMapData(stageNum);
 
-                if (currentMap[i][j] != 1 && currentMap[i][j] != 5) continue; // 블록이 없는 경우 스킵
+                if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
 
                 // 블록의 좌표 계산
                 float blockTop = i * BLOCK_SIZE;
@@ -119,8 +125,13 @@ void CPlayer::Update() {
                         jumpVelocity = 0.0f;
                         pos.y = blockTop - size / 2; // 블록 위로 정렬
                         isLanding = true;
+                        if (moveSpeed == 0.0f) { // 움직임이 없을 때만 Idle
+                            Pstate = PlayerState::Idle;
+                        }
+                        else {
+                            Pstate = PlayerState::Move;
+                        }
                         isJumping = false;
-                        Pstate = PlayerState::Idle;
                         break;
                     }
 
@@ -131,16 +142,19 @@ void CPlayer::Update() {
                         break;
                     }
 
-                    // 블록 내부에 있는 경우 처리
                     if (pos.y - size / 2 < blockBottom && pos.y + size / 2 > blockTop) {
                         pos.y = blockTop - size / 2; // 블록 위로 고정
                         jumpVelocity = 0.0f; // 중력 속도 초기화
                         isLanding = true;
                         isJumping = false;
-                        Pstate = PlayerState::Idle;
+                        if (moveSpeed == 0.0f) { // 움직임이 없을 때만 Idle
+                            Pstate = PlayerState::Idle;
+                        }
+                        else {
+                            Pstate = PlayerState::Move;
+                        }
                         break;
                     }
-
                 }
             }
         }
@@ -148,7 +162,7 @@ void CPlayer::Update() {
     }
 
     // 점프 처리
-    if (input==KT::Up && !isJumping) {
+    if (input == KT::Up && !isJumping) {
         isJumping = true;
         jumpVelocity = -jumpStrength; // 위로 점프
         Pstate = PlayerState::Jump;
@@ -159,7 +173,14 @@ void CPlayer::Update() {
         Pstate = PlayerState::Jump; // 공중 상태
     }
 
+    if (input == KT::Left || input == KT::Right) {
+        moveSpeed = (input == KT::Left ? -speed : speed) * deltaTime;
+        if (Pstate != PlayerState::Jump) {
+            Pstate = PlayerState::Move;
+        }
+    }
 }
+
 
 
 void CPlayer::UpdateAnimation(float deltaTime) {

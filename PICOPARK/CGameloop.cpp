@@ -2,6 +2,7 @@
 #include "CGameloop.h"
 #include "CPlayer.h"
 #include "ObjectManager.h"
+#include "Stage1.h"
 
 CGameloop::CGameloop() {
     InitializeCriticalSection(&UpdateCS);
@@ -26,7 +27,7 @@ void CGameloop::Update() {
     static uint64_t lastSentTime = 0; // 마지막 전송된 시간 (초기값은 0으로 설정)
 
     // 현재 클라이언트 시간을 가져옴 (ms 단위)
-    uint64_t currentTime = static_cast<uint64_t>(timeManager.GetDeltaTime() * 1000);
+    uint64_t currentTime = static_cast<uint64_t>(timeManager.GetDeltaTime() * 100000);
 
     // 초기화: 첫 패킷 전송 전에 lastSentTime을 currentTime으로 설정
     if (lastSentTime == 0) {
@@ -34,9 +35,9 @@ void CGameloop::Update() {
     }
 
     timeAccumulator += timeManager.GetDeltaTime();
-    const float PACKET_INTERVAL = 1.0f / 30.0f; // 초당 30회 (약 33ms)
-
-    if (timeAccumulator >= PACKET_INTERVAL) {
+    //const float PACKET_INTERVAL = 1.0f / 30.0f; // 초당 30회 (약 33ms)
+    //
+    //if (timeAccumulator >= PACKET_INTERVAL) {
         // 주기적으로 패킷 전송
         bool keyflag = false;
         for (int key = 0; key < KEY_TYPE_COUNT; key++) {
@@ -71,8 +72,8 @@ void CGameloop::Update() {
         }
 
         lastSentTime = currentTime; // 마지막 전송 시간 갱신
-        timeAccumulator -= PACKET_INTERVAL; // 간격만큼 시간 차감
-    }
+        //timeAccumulator -= PACKET_INTERVAL; // 간격만큼 시간 차감
+    //}
 
     std::queue<std::unique_ptr<BasePacket>> TempQueue;
 
@@ -113,9 +114,19 @@ void CGameloop::Update() {
             for (int i = 0; i < 2; ++i) {
                 CPlayer* player = ObjectManager::GetInstance().GetPlayerByID(objInfo->m_player[i].m_playerID);
                 if (player) {
-                    player->Setinfo(objInfo);
+                    player->Setinfo(&objInfo->m_player[i]);
                 }
             }
+            if (objInfo->openthedoor) {
+                CScene* currentScene = SceneManager.GetInstance().GetCurrentScene();
+                if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage1)
+                {
+                    Stage1* stage1 = dynamic_cast<Stage1*>(currentScene);
+                    stage1->IsDoorOpen();
+                }
+                
+            }
+
             SceneManager.Update();
             break;
         }
@@ -127,6 +138,7 @@ void CGameloop::Update() {
             }
             break;
         }
+
         default:
             break;
         }

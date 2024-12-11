@@ -38,6 +38,7 @@ public:
     // 씬 전환 기능
     void ChangeScene();
     CScene* GetCurrentScene() const { return scene; } // 현재 씬 반환
+    SceneType GetSceneType() const { return sceneType; }
 private:
     // 기본 생성자를 private으로 처리하여 외부에서 생성 불가
     SceneManager() = default;

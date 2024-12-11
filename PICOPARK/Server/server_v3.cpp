@@ -7,12 +7,15 @@
 #include <windows.h>
 #include "CGameloop.h"
 #include "CPlayer.h"
+#include "Stage1.h"
+#include "Stage2.h"
+#include "Stage3.h"
 
 
 #pragma comment(lib, "ws2_32.lib")
 
 #define SERVER_PORT 9000
-#define MAX_CLIENTS 1
+#define MAX_CLIENTS 2
 #define BUFFER_SIZE 512
 
 CGameloop loop;
@@ -28,6 +31,9 @@ CRITICAL_SECTION SendQueueCS;
 // 큐
 std::queue<std::unique_ptr<BasePacket>> RecvQueue;
 std::queue<std::unique_ptr<BasePacket>> SendQueue;
+
+Position beforepos[2];
+PlayerState beforeps[2];
 
 // 클라이언트 소켓
 SOCKET clientSockets[MAX_CLIENTS];
@@ -53,33 +59,26 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
         auto packet = std::make_unique<Input_Packet>();
         memcpy(packet.get(), buffer, sizeof(Input_Packet));
 
-        // 디버깅 출력
-        //std::cout << "Received Input_Packet from Player " << playerID << ":" << std::endl;
-        //std::cout << "  Packet Type: " << static_cast<int>(packet->packetType) << std::endl;
-        //std::cout << "  Player ID: " << packet->m_playerID << std::endl;
-        //std::cout << "  Input Type: " << static_cast<int>(packet->inputType) << std::endl;
-        //std::cout << "  Input State: " << static_cast<int>(packet->inputState) << std::endl;
-        //std::cout << "  inputTime: " << packet->inputTime << std::endl;
-
-        // RecvQueue에 추가
         EnterCriticalSection(&RecvQueueCS);
         RecvQueue.push(std::move(packet));
         LeaveCriticalSection(&RecvQueueCS);
 
-        // SendQueue에서 데이터를 가져와 클라이언트에게 전송
+        // SendQueue에서 데이터를 가져와 모든 클라이언트에게 전송
         EnterCriticalSection(&SendQueueCS);
         if (!SendQueue.empty()) {
             auto sendPacket = std::move(SendQueue.front());
             SendQueue.pop();
             LeaveCriticalSection(&SendQueueCS);
 
-            send(clientSocket, reinterpret_cast<char*>(sendPacket.get()), sizeof(ObjectInfo_Packet), 0);
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clientSockets[i] != INVALID_SOCKET) {
+                    send(clientSockets[i], reinterpret_cast<char*>(sendPacket.get()), sizeof(ObjectInfo_Packet), 0);
+                }
+            }
         }
         else {
             LeaveCriticalSection(&SendQueueCS);
         }
-
-        Sleep(1); // CPU 사용량 제어
     }
 }
 
@@ -159,7 +158,7 @@ int main() {
 
     // 패킷 전송 루프
     auto lastUpdate = std::chrono::high_resolution_clock::now();
-    const std::chrono::milliseconds updateInterval(30); // 약 33ms
+    const std::chrono::milliseconds updateInterval(16); // 초당 60fps
 
     while (true) {
         auto now = std::chrono::high_resolution_clock::now();
@@ -184,11 +183,11 @@ int main() {
                 // Input_Packet 처리
                 if (packet->packetType == 1) {
                     auto inputPacket = std::unique_ptr<Input_Packet>(static_cast<Input_Packet*>(packet.release()));
-                    //std::cout << "Input Packet Details:\n";
-                    //std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
-                    //std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
-                    //std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
-                    //std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
+                    std::cout << "Input Packet Details:\n";
+                    std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
+                    std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
+                    std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
+                    std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
 
                     loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
                 }
@@ -200,22 +199,58 @@ int main() {
                 int index = 0;
                 for (auto* obj : objects) {
                     if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
-                        objectPacket->m_player[index] = player->GetPK();
+                        objectPacket->m_player[index] = player->GetPK();                    
                         index++;
-                        std::cout << "  Player ID: " << player->GetPK().m_playerID
-                            << ", Type: " << static_cast<int>(player->GetPtype())
-                            << ", X: " << player->GetPos().x
-                            << ", Y: " << player->GetPos().y << "\n"
-                            << ", ID: " << player->GetID() << "\n";
                     }
                 }
-                EnterCriticalSection(&SendQueueCS);
-                SendQueue.push(std::move(objectPacket));
-                LeaveCriticalSection(&SendQueueCS);
+                CScene* currentScene = SceneManager::GetInstance().GetCurrentScene();
+                if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage1)
+                {
+                    Stage1* stage1 = dynamic_cast<Stage1*>(currentScene);
+                    if (stage1->IsDoorOpen())
+                        objectPacket->openthedoor = true;
+                }
+                else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage2) {
+                    Stage2* stage2 = dynamic_cast<Stage2*>(currentScene);
+                    if (stage2->IsDoorOpen())
+                        objectPacket->openthedoor = true;
+                }
+                else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3) {
+                    Stage3* stage3 = dynamic_cast<Stage3*>(currentScene);
+                    if (stage3->IsDoorOpen())
+                        objectPacket->openthedoor = true;
+                }
+
+                Position temp[2];
+                PlayerState tempps[2];
+                temp[0].x = objectPacket->m_player[0].m_x;
+                temp[0].y = objectPacket->m_player[0].m_y;
+                temp[1].x = objectPacket->m_player[1].m_x;
+                temp[1].y = objectPacket->m_player[1].m_y;
+                tempps[0] = objectPacket->m_player[0].m_state;
+                tempps[1] = objectPacket->m_player[1].m_state;
+                
+                
+                if (beforepos[0].x != objectPacket->m_player[0].m_x ||
+                    beforepos[0].y != objectPacket->m_player[0].m_y ||
+                    beforepos[1].x != objectPacket->m_player[1].m_x ||
+                    beforepos[1].y != objectPacket->m_player[1].m_y ||
+                    beforeps[0] != objectPacket->m_player[0].m_state ||
+                    beforeps[1] != objectPacket->m_player[1].m_state
+                    )
+                {
+                    EnterCriticalSection(&SendQueueCS);               
+                    SendQueue.push(std::move(objectPacket));                
+                    LeaveCriticalSection(&SendQueueCS);
+                }
+                beforepos[0].x = temp[0].x;
+                beforepos[0].y = temp[0].y;
+                beforepos[1].x = temp[1].x;
+                beforepos[1].y = temp[1].y;      
+                beforeps[0] = tempps[0];
+                beforeps[1] = tempps[1];
             }
         }
-
-        Sleep(1); // CPU 사용량 제어
     }
 
     // 종료 처리

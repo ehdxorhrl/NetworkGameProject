@@ -40,7 +40,6 @@ public:
                 }
             }
         }
-        std::cerr << "Player with ID " << playerID << " not found.\n";
         return nullptr;
     }
 

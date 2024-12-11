@@ -4,11 +4,11 @@
 #include "ObjectManager.h"
 #include "CPlayer.h"
 
-class Stage1 :public CScene
+class Stage2 :public CScene
 {
 public:
-	Stage1();
-	~Stage1() override;
+	Stage2();
+	~Stage2() override;
 
 	void Init() override;
 	void Update() override;
@@ -21,7 +21,7 @@ public:
 	bool IsDoorOpen() { return openDoor; }
 private:
 	int currentMapID;
-	int maps[2][8][8]{};
+	int maps[3][8][8]{};
 	bool openDoor = false;
 };
 

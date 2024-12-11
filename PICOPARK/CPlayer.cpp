@@ -22,6 +22,9 @@ void CPlayer::Render(HDC hdc) {
         else
             PImage[0].Draw(hdc, drawX, drawY, size, size, 0, 0, 100, 100);
     }
+    if (haskey) {
+        KeyImage.Draw(hdc, drawX-20, drawY-20, 20, 20, 0, 0, 100, 100);
+    }
 }
 
 void CPlayer::Init() {
@@ -37,6 +40,8 @@ void CPlayer::Init() {
         PImage[2].Load(L"assets/점프2.jpg");
         PImage[3].Load(L"assets/죽음2.png");
     }
+
+    KeyImage.Load(L"assets/열쇠.png");
 
     size = 50;
     speed = 350;
@@ -57,11 +62,11 @@ void CPlayer::UpdateAnimation(float deltaTime) {
     }
 }
 
-void CPlayer::Setinfo(ObjectInfo_Packet* _info) {
-    pos.x = _info->m_player[playerID].m_x;
-    pos.y = _info->m_player[playerID].m_y;
-    Pstate = _info->m_player[playerID].m_state;
-    stageNum = _info->m_player[playerID].m_stageNum;
-
-    // 패킷 포인터의 메모리 해제
+void CPlayer::Setinfo(PlayerInfo* _info) {
+    pos.x = _info->m_x;
+    pos.y = _info->m_y;
+    Pstate = _info->m_state;
+    stageNum = _info->m_stageNum;
+    Movement = _info->m_Movement;
+    haskey = _info->m_haskey;
 }
