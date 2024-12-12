@@ -41,7 +41,7 @@ void CGameloop::Update() {
         // 주기적으로 패킷 전송
         bool keyflag = false;
         for (int key = 0; key < KEY_TYPE_COUNT; key++) {
-            if (inputManager.IsKeyDown(key)) {
+            if (inputManager.IsKeyDown(key)|| inputManager.IsKeyUp(key)) {
                 // Input_Packet 생성
                 Input_Packet inputPacket;
                 inputPacket.m_playerID = GetID(); // 플레이어 ID

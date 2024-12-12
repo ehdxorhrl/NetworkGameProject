@@ -14,7 +14,7 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-#define SERVER_PORT 9000
+#define SERVER_PORT 6112
 #define MAX_CLIENTS 2
 #define BUFFER_SIZE 512
 
@@ -183,11 +183,11 @@ int main() {
                 // Input_Packet 처리
                 if (packet->packetType == 1) {
                     auto inputPacket = std::unique_ptr<Input_Packet>(static_cast<Input_Packet*>(packet.release()));
-                    std::cout << "Input Packet Details:\n";
-                    std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
-                    std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
-                    std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
-                    std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
+                    //std::cout << "Input Packet Details:\n";
+                    //std::cout << "  Player ID: " << inputPacket->m_playerID << "\n";
+                    //std::cout << "  Input Type: " << static_cast<int>(inputPacket->inputType) << "\n";
+                    //std::cout << "  Input State: " << static_cast<int>(inputPacket->inputState) << "\n";
+                    //std::cout << "  Input Time: " << inputPacket->inputTime << "\n";
 
                     loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
                 }
@@ -209,16 +209,22 @@ int main() {
                     Stage1* stage1 = dynamic_cast<Stage1*>(currentScene);
                     if (stage1->IsDoorOpen())
                         objectPacket->openthedoor = true;
+                    else
+                        objectPacket->openthedoor = false;
                 }
                 else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage2) {
                     Stage2* stage2 = dynamic_cast<Stage2*>(currentScene);
                     if (stage2->IsDoorOpen())
                         objectPacket->openthedoor = true;
+                    else
+                        objectPacket->openthedoor = false;
                 }
                 else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3) {
                     Stage3* stage3 = dynamic_cast<Stage3*>(currentScene);
                     if (stage3->IsDoorOpen())
                         objectPacket->openthedoor = true;
+                    else
+                        objectPacket->openthedoor = false;
                 }
 
                 Position temp[2];
@@ -239,10 +245,12 @@ int main() {
                     beforeps[1] != objectPacket->m_player[1].m_state
                     )
                 {
+                    std::cout << "  openthedoor: " << objectPacket->openthedoor << "\n";
                     EnterCriticalSection(&SendQueueCS);               
                     SendQueue.push(std::move(objectPacket));                
                     LeaveCriticalSection(&SendQueueCS);
                 }
+
                 beforepos[0].x = temp[0].x;
                 beforepos[0].y = temp[0].y;
                 beforepos[1].x = temp[1].x;

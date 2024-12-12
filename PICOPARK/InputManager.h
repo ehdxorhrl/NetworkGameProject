@@ -49,6 +49,7 @@ public:
 	void Init(HWND hwnd);
 	void Update();
 	bool IsKeyDown(int key) { return states[key] == KeyState::Down || states[key] == KeyState::Press; }
+	bool IsKeyUp(int key) { return states[key] == KeyState::Up; }
 	bool GetButton(KeyType key) { return GetState(key) == KeyState::Press; }
 	bool GetButtonDown(KeyType key) { return GetState(key) == KeyState::Down; }
 	bool GetButtonUp(KeyType key) { return GetState(key) == KeyState::Up; }

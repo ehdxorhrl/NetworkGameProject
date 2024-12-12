@@ -10,7 +10,7 @@
 // Base Packet
 struct BasePacket {
     uint8_t packetType; // Packet type
-    ~BasePacket() = default; // 가상 소멸자 제거
+    ~BasePacket() = default;
 };
 
 // Input Packet
@@ -46,7 +46,7 @@ struct GameStart_Packet : BasePacket {
     bool isGameStarted;
 
     GameStart_Packet() {
-        packetType = 102; // Initialize packet type
+        packetType = 102;
     }
 };
 

@@ -20,8 +20,6 @@ void CGameloop::Update(const Input_Packet* inputPacket) {
         CPlayer* player = ObjectManager::GetInstance().GetPlayerByID(playerType);
         if (player) {
             player->SetInput(inputPacket->inputType, inputPacket->inputTime);
-            Position pos = player->GetPos();
-
         }
     }
 

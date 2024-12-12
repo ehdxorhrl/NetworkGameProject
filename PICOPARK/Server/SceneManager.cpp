@@ -26,11 +26,12 @@ void SceneManager::Init()
 
 void SceneManager::Update()
 {
-	if (scene)
-		scene->Update();
 
 	if (scene->IsSceneChangeRequired())
 		ChangeScene();
+
+	if (scene)
+		scene->Update();
 }
 
 void SceneManager::Clear()

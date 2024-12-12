@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "CPlayer.h"
 #include "Stage1.h"
+#include "Stage2.h"
+#include "Stage3.h"
 
 CPlayer::CPlayer() {}
 
@@ -57,7 +59,8 @@ void CPlayer::Update() {
     // 좌우 충돌 검사
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
-            if (Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene())) {
+            if (SceneManager::GetInstance().GetSceneType()==SceneType::Stage1) {
+                Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene());
                 int(*currentMap)[8] = stage->GetMapData(stageNum);
 
                 if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
@@ -96,6 +99,89 @@ void CPlayer::Update() {
                         moveSpeed = gap; // 이동 간격 조정
                     }
                 }
+            } else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage2) {
+                Stage2* stage = dynamic_cast<Stage2*>(SceneManager::GetInstance().GetCurrentScene());
+                int(*currentMap)[8] = stage->GetMapData(stageNum);
+
+                if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
+
+                // 블록의 좌표 계산
+                float blockLeft = j * BLOCK_SIZE;
+                float blockRight = blockLeft + BLOCK_SIZE;
+                float blockTop = i * BLOCK_SIZE;
+                float blockBottom = blockTop + BLOCK_SIZE;
+
+                // y축 충돌 범위 확인
+                if (!(blockTop < pos.y + size / 2 && pos.y - size / 2 < blockBottom)) continue;
+
+                if (moveSpeed < 0.f) { // 좌측 이동
+                    if (pos.x - size / 2 < blockRight) continue; // 오른쪽에 있는 블록 제외
+
+                    if (abs(blockRight - (pos.x - size / 2)) < 0.001f) {
+                        moveSpeed = 0.0f; // 정확히 맞닿으면 이동 멈춤
+                        break;
+                    }
+
+                    if (pos.x - size / 2 + moveSpeed < blockRight) {
+                        float gap = blockRight - (pos.x - size / 2);
+                        moveSpeed = gap; // 이동 간격 조정
+                    }
+                }
+                else if (moveSpeed > 0.f) { // 우측 이동
+                    if (pos.x + size / 2 > blockLeft) continue; // 왼쪽에 있는 블록 제외
+
+                    if (abs(blockLeft - (pos.x + size / 2)) < 0.001f) {
+                        moveSpeed = 0.0f; // 정확히 맞닿으면 이동 멈춤
+                        break;
+                    }
+
+                    if (pos.x + size / 2 + moveSpeed > blockLeft) {
+                        float gap = blockLeft - (pos.x + size / 2);
+                        moveSpeed = gap; // 이동 간격 조정
+                    }
+                }
+            }
+            else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3) {
+                Stage3* stage = dynamic_cast<Stage3*>(SceneManager::GetInstance().GetCurrentScene());
+                int(*currentMap)[8] = stage->GetMapData(stageNum);
+
+                if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
+
+                // 블록의 좌표 계산
+                float blockLeft = j * BLOCK_SIZE;
+                float blockRight = blockLeft + BLOCK_SIZE;
+                float blockTop = i * BLOCK_SIZE;
+                float blockBottom = blockTop + BLOCK_SIZE;
+
+                // y축 충돌 범위 확인
+                if (!(blockTop < pos.y + size / 2 && pos.y - size / 2 < blockBottom)) continue;
+
+                if (moveSpeed < 0.f) { // 좌측 이동
+                    if (pos.x - size / 2 < blockRight) continue; // 오른쪽에 있는 블록 제외
+
+                    if (abs(blockRight - (pos.x - size / 2)) < 0.001f) {
+                        moveSpeed = 0.0f; // 정확히 맞닿으면 이동 멈춤
+                        break;
+                    }
+
+                    if (pos.x - size / 2 + moveSpeed < blockRight) {
+                        float gap = blockRight - (pos.x - size / 2);
+                        moveSpeed = gap; // 이동 간격 조정
+                    }
+                }
+                else if (moveSpeed > 0.f) { // 우측 이동
+                    if (pos.x + size / 2 > blockLeft) continue; // 왼쪽에 있는 블록 제외
+
+                    if (abs(blockLeft - (pos.x + size / 2)) < 0.001f) {
+                        moveSpeed = 0.0f; // 정확히 맞닿으면 이동 멈춤
+                        break;
+                    }
+
+                    if (pos.x + size / 2 + moveSpeed > blockLeft) {
+                        float gap = blockLeft - (pos.x + size / 2);
+                        moveSpeed = gap; // 이동 간격 조정
+                    }
+                }
             }
         }
     }
@@ -107,7 +193,108 @@ void CPlayer::Update() {
     bool isLanding = false;
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
-            if (Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene())) {
+            if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage1) {
+                Stage1* stage = dynamic_cast<Stage1*>(SceneManager::GetInstance().GetCurrentScene());
+                int(*currentMap)[8] = stage->GetMapData(stageNum);
+
+                if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
+
+                // 블록의 좌표 계산
+                float blockTop = i * BLOCK_SIZE;
+                float blockLeft = j * BLOCK_SIZE;
+                float blockRight = blockLeft + BLOCK_SIZE;
+                float blockBottom = blockTop + BLOCK_SIZE;
+
+                // 착지 조건 확인
+                if (blockLeft < pos.x + size / 4 && pos.x - size / 4 < blockRight) {  // /4 발, /2 사각형
+                    if (pos.y + size / 2 <= blockTop && pos.y + size / 2 + jumpVelocity * deltaTime >= blockTop) {
+                        // 착지 처리
+                        jumpVelocity = 0.0f;
+                        pos.y = blockTop - size / 2; // 블록 위로 정렬
+                        isLanding = true;
+                        if (moveSpeed == 0.0f) { // 움직임이 없을 때만 Idle
+                            Pstate = PlayerState::Idle;
+                        }
+                        else {
+                            Pstate = PlayerState::Move;
+                        }
+                        isJumping = false;
+                        break;
+                    }
+
+                    if (pos.y - size / 2 >= blockBottom && pos.y - size / 2 + jumpVelocity * deltaTime < blockBottom) {
+                        jumpVelocity = 0.0f; // 충돌 시 속도 초기화
+                        pos.y = blockBottom + size / 2; // 캐릭터를 블록 아래로 정렬
+                        isLanding = false; // 공중 상태 유지
+                        break;
+                    }
+
+                    if (pos.y - size / 2 < blockBottom && pos.y + size / 2 > blockTop) {
+                        pos.y = blockTop - size / 2; // 블록 위로 고정
+                        jumpVelocity = 0.0f; // 중력 속도 초기화
+                        isLanding = true;
+                        isJumping = false;
+                        if (moveSpeed == 0.0f) { // 움직임이 없을 때만 Idle
+                            Pstate = PlayerState::Idle;
+                        }
+                        else {
+                            Pstate = PlayerState::Move;
+                        }
+                        break;
+                    }
+                }
+            }else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage2) {
+                Stage2* stage = dynamic_cast<Stage2*>(SceneManager::GetInstance().GetCurrentScene());
+                int(*currentMap)[8] = stage->GetMapData(stageNum);
+
+                if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
+
+                // 블록의 좌표 계산
+                float blockTop = i * BLOCK_SIZE;
+                float blockLeft = j * BLOCK_SIZE;
+                float blockRight = blockLeft + BLOCK_SIZE;
+                float blockBottom = blockTop + BLOCK_SIZE;
+
+                // 착지 조건 확인
+                if (blockLeft < pos.x + size / 4 && pos.x - size / 4 < blockRight) {  // /4 발, /2 사각형
+                    if (pos.y + size / 2 <= blockTop && pos.y + size / 2 + jumpVelocity * deltaTime >= blockTop) {
+                        // 착지 처리
+                        jumpVelocity = 0.0f;
+                        pos.y = blockTop - size / 2; // 블록 위로 정렬
+                        isLanding = true;
+                        if (moveSpeed == 0.0f) { // 움직임이 없을 때만 Idle
+                            Pstate = PlayerState::Idle;
+                        }
+                        else {
+                            Pstate = PlayerState::Move;
+                        }
+                        isJumping = false;
+                        break;
+                    }
+
+                    if (pos.y - size / 2 >= blockBottom && pos.y - size / 2 + jumpVelocity * deltaTime < blockBottom) {
+                        jumpVelocity = 0.0f; // 충돌 시 속도 초기화
+                        pos.y = blockBottom + size / 2; // 캐릭터를 블록 아래로 정렬
+                        isLanding = false; // 공중 상태 유지
+                        break;
+                    }
+
+                    if (pos.y - size / 2 < blockBottom && pos.y + size / 2 > blockTop) {
+                        pos.y = blockTop - size / 2; // 블록 위로 고정
+                        jumpVelocity = 0.0f; // 중력 속도 초기화
+                        isLanding = true;
+                        isJumping = false;
+                        if (moveSpeed == 0.0f) { // 움직임이 없을 때만 Idle
+                            Pstate = PlayerState::Idle;
+                        }
+                        else {
+                            Pstate = PlayerState::Move;
+                        }
+                        break;
+                    }
+                }
+            } else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3) {
+                Stage3* stage = dynamic_cast<Stage3*>(SceneManager::GetInstance().GetCurrentScene());
                 int(*currentMap)[8] = stage->GetMapData(stageNum);
 
                 if (currentMap[i][j] != 2 && currentMap[i][j] != 6) continue; // 블록이 없는 경우 스킵
