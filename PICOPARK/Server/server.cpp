@@ -1,171 +1,270 @@
+#include "stdafx.h"
+#include <winsock2.h>
 #include <iostream>
 #include <queue>
-#include <cstdint>
-#include <winsock2.h>
+#include <memory>
+#include <chrono>
 #include <windows.h>
-#include <vector>
-#include "Packet.h"
+#include "CGameloop.h"
+#include "CPlayer.h"
+#include "Stage1.h"
+#include "Stage2.h"
+#include "Stage3.h"
 
-// Include necessary structs and enums here
 
-CRITICAL_SECTION recvQueueCS;
-CRITICAL_SECTION sendQueueCS;
+#pragma comment(lib, "ws2_32.lib")
 
-std::queue<Input_Packet> RecvQueue;
-std::queue<ObjectInfo_Packet> SendQueue;
+#define SERVER_PORT 6112
+#define MAX_CLIENTS 2
+#define BUFFER_SIZE 512
 
+CGameloop loop;
+
+void SendPlayerID(SOCKET clientSocket, uint32_t playerID);
+
+// 임계영역
+CRITICAL_SECTION RecvQueueCS;
+CRITICAL_SECTION SendQueueCS;
+
+// 큐
+std::queue<std::unique_ptr<BasePacket>> RecvQueue;
+std::queue<std::unique_ptr<BasePacket>> SendQueue;
+
+// 클라이언트 소켓
+SOCKET clientSockets[MAX_CLIENTS];
+
+// Communication Thread 함수
 DWORD WINAPI CommunicationThread(LPVOID lpParam) {
-    SOCKET clientSocket = (SOCKET)lpParam;
-    char recvBuffer[1024];
-    char sendBuffer[1024];
-    int bytesReceived, bytesSent;
+    int playerID = *(int*)lpParam;
+    SOCKET clientSocket = clientSockets[playerID];
+    delete (int*)lpParam;
+
+    char buffer[BUFFER_SIZE];
 
     while (true) {
-        // Receive data
-        {
-            EnterCriticalSection(&recvQueueCS);
-            bytesReceived = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
-            LeaveCriticalSection(&recvQueueCS);
-
-            if (bytesReceived == SOCKET_ERROR || bytesReceived == 0) {
-                std::cerr << "recv() failed or connection closed: " << WSAGetLastError() << std::endl;
-                break;
-            }
-
-            // Process received packet and push to RecvQueue
-            Input_Packet packet;
-            memcpy(&packet, recvBuffer, sizeof(Input_Packet));
-
-            EnterCriticalSection(&recvQueueCS);
-            RecvQueue.push(packet);
-            LeaveCriticalSection(&recvQueueCS);
+        // 클라이언트로부터 데이터 수신
+        int recvSize = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+        if (recvSize <= 0) {
+            std::cerr << "Player " << playerID << " disconnected.\n";
+            closesocket(clientSocket);
+            clientSockets[playerID] = INVALID_SOCKET;
+            return 0; // 스레드 종료
         }
 
-        // Send data
-        {
-            EnterCriticalSection(&sendQueueCS);
-            if (!SendQueue.empty()) {
-                ObjectInfo_Packet packet = SendQueue.front();
-                SendQueue.pop();
-                LeaveCriticalSection(&sendQueueCS);
+        auto packet = std::make_unique<Input_Packet>();
+        memcpy(packet.get(), buffer, sizeof(Input_Packet));
 
-                memcpy(sendBuffer, &packet, sizeof(ObjectInfo_Packet));
-                bytesSent = send(clientSocket, sendBuffer, sizeof(ObjectInfo_Packet), 0);
-                if (bytesSent == SOCKET_ERROR) {
-                    std::cerr << "send() failed: " << WSAGetLastError() << std::endl;
-                    break;
+        EnterCriticalSection(&RecvQueueCS);
+        RecvQueue.push(std::move(packet));
+        LeaveCriticalSection(&RecvQueueCS);
+
+        EnterCriticalSection(&SendQueueCS);
+        while (!SendQueue.empty()) {
+            auto sendPacket = std::move(SendQueue.front());
+            SendQueue.pop();
+            LeaveCriticalSection(&SendQueueCS);
+
+            // 모든 클라이언트에게 동일한 패킷 전송
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clientSockets[i] != INVALID_SOCKET) {
+                    int sendResult = send(clientSockets[i], reinterpret_cast<char*>(sendPacket.get()), sizeof(ObjectInfo_Packet), 0);
+                    if (sendResult == SOCKET_ERROR) {
+                        std::cerr << "Failed to send packet to Client ID " << i << ": " << WSAGetLastError() << "\n";
+                    }
+                    else {
+                        std::cout << "Packet sent to Client ID " << i << "\n";
+                    }
                 }
             }
-            else {
-                LeaveCriticalSection(&sendQueueCS);
-            }
+
+            EnterCriticalSection(&SendQueueCS);
         }
+        LeaveCriticalSection(&SendQueueCS);
     }
-    closesocket(clientSocket);
-    return 0;
 }
 
 int main() {
+    loop.Init();
     WSADATA wsaData;
-    SOCKET serverSocket, clientSocket;
-    struct sockaddr_in serverAddr, clientAddr;
-    int clientAddrSize = sizeof(clientAddr);
+    SOCKET serverSocket;
+    sockaddr_in serverAddr;
 
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "WSAStartup failed: " << WSAGetLastError() << std::endl;
-        return 1;
-    }
-
-    // Create server socket
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket == INVALID_SOCKET) {
-        std::cerr << "Socket creation failed: " << WSAGetLastError() << std::endl;
-        WSACleanup();
-        return 1;
-    }
 
-    // Set up the server address structure
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(8080);
+    serverAddr.sin_port = htons(SERVER_PORT);
 
-    // Bind the socket
-    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        std::cerr << "Bind failed: " << WSAGetLastError() << std::endl;
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
+    bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+    listen(serverSocket, SOMAXCONN);
 
-    // Listen for incoming connections
-    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
-        std::cerr << "Listen failed: " << WSAGetLastError() << std::endl;
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
+    InitializeCriticalSection(&RecvQueueCS);
+    InitializeCriticalSection(&SendQueueCS);
 
-    std::cout << "Server is listening on port 8080..." << std::endl;
-
-    // Initialize critical sections
-    InitializeCriticalSection(&recvQueueCS);
-    InitializeCriticalSection(&sendQueueCS);
-
-    // Accept client connections and create communication threads
     int clientCount = 0;
-    while (clientCount < 2) { // Limit to 2 clients
-        clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
+    HANDLE communicationThreads[MAX_CLIENTS];
+
+    // 클라이언트 연결 및 처리
+    while (clientCount < MAX_CLIENTS) {
+        sockaddr_in clientAddr;
+        int clientAddrSize = sizeof(clientAddr);
+
+        SOCKET clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrSize);
         if (clientSocket == INVALID_SOCKET) {
-            std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
+            std::cerr << "Accept failed: " << WSAGetLastError() << "\n";
             continue;
         }
 
-        std::cout << "Client connected." << std::endl;
-        HANDLE hThread = CreateThread(NULL, 0, CommunicationThread, (LPVOID)clientSocket, 0, NULL);
-        if (hThread == NULL) {
-            std::cerr << "CreateThread failed: " << GetLastError() << std::endl;
-            closesocket(clientSocket);
-        }
-        else {
-            CloseHandle(hThread);
-        }
+        clientSockets[clientCount] = clientSocket;
+
+        uint32_t playerID = static_cast<uint32_t>(clientCount); // 간단히 clientCount를 ID로 사용
+        SendPlayerID(clientSocket, playerID);
+
+
+        std::cout << "Client with ID " << clientCount << " connected.\n";
+
+        int* param = new int(clientCount);
+        communicationThreads[clientCount] = CreateThread(
+            nullptr,
+            0,
+            CommunicationThread,
+            param,
+            0,
+            nullptr
+        );
+
         clientCount++;
     }
 
-    // Main update loop
-    while (true) {
-        std::queue<Input_Packet> TempQueue;
+    // 게임 시작 신호 전송
+    auto gameStartPacket = std::make_unique<GameStart_Packet>();
+    gameStartPacket->isGameStarted = true;
 
-        // Move data from RecvQueue to TempQueue
-        EnterCriticalSection(&recvQueueCS);
-        while (!RecvQueue.empty()) {
-            TempQueue.push(RecvQueue.front());
-            RecvQueue.pop();
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        if (clientSockets[i] != INVALID_SOCKET) {
+            int sendResult = send(clientSockets[i],
+                reinterpret_cast<const char*>(gameStartPacket.get()),
+                sizeof(GameStart_Packet),
+                0);
+
+            if (sendResult == SOCKET_ERROR) {
+                std::cerr << "Failed to send game start packet to Client ID " << i << ".\n";
+            }
+            else {
+                std::cout << "Game start packet sent to Client ID " << i << ".\n";
+            }
         }
-        LeaveCriticalSection(&recvQueueCS);
-
-        // Process TempQueue and create updates
-        while (!TempQueue.empty()) {
-            Input_Packet packet = TempQueue.front();
-            TempQueue.pop();
-            // Process packet (update logic to be implemented)
-        }
-
-        // Add processed data to SendQueue if needed
-        EnterCriticalSection(&sendQueueCS);
-        // Populate SendQueue with response packets (update logic to be implemented)
-        LeaveCriticalSection(&sendQueueCS);
-
-        // Simulate a small delay to avoid busy-waiting
-        Sleep(50);
     }
 
-    // Cleanup
-    DeleteCriticalSection(&recvQueueCS);
-    DeleteCriticalSection(&sendQueueCS);
+    // 패킷 전송 루프
+    auto lastUpdate = std::chrono::high_resolution_clock::now();
+    const std::chrono::milliseconds updateInterval(16); // 초당 60fps
+
+    while (true) {
+        auto now = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdate) >= updateInterval) {
+            lastUpdate = now;
+
+            // RecvQueue에서 데이터를 TempQueue로 이동
+            std::queue<std::unique_ptr<BasePacket>> TempQueue;
+
+            EnterCriticalSection(&RecvQueueCS);
+            while (!RecvQueue.empty()) {
+                TempQueue.push(std::move(RecvQueue.front()));
+                RecvQueue.pop();
+            }
+            LeaveCriticalSection(&RecvQueueCS);
+
+            // TempQueue 데이터 처리
+            while (!TempQueue.empty()) {
+                auto packet = std::move(TempQueue.front());
+                TempQueue.pop();
+
+                // Input_Packet 처리
+                if (packet->packetType == 1) {
+                    auto inputPacket = std::unique_ptr<Input_Packet>(static_cast<Input_Packet*>(packet.release()));
+                    loop.Update(inputPacket.get()); // 입력이 있는 경우에 업데이트
+                }
+
+                // 상태 패킷 생성 및 전송
+                auto objectPacket = std::make_unique<ObjectInfo_Packet>();
+                const auto& objects = ObjectManager::GetInstance().GetObjects();
+
+                int index = 0;
+                for (auto* obj : objects) {
+                    if (CPlayer* player = dynamic_cast<CPlayer*>(obj)) {
+                        objectPacket->m_player[index] = player->GetPK();                    
+                        index++;
+                    }
+                }
+                CScene* currentScene = SceneManager::GetInstance().GetCurrentScene();
+                objectPacket->changescene = currentScene->IsSceneChangeRequired();
+                if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage1)
+                {
+                    Stage1* stage1 = dynamic_cast<Stage1*>(currentScene);
+                    if (stage1->IsDoorOpen())
+                        objectPacket->openthedoor = true;
+                    else
+                        objectPacket->openthedoor = false;
+                }
+                else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage2) {
+                    Stage2* stage2 = dynamic_cast<Stage2*>(currentScene);
+                    if (stage2->IsDoorOpen())
+                        objectPacket->openthedoor = true;
+                    else
+                        objectPacket->openthedoor = false;
+                }
+                else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3) {
+                    Stage3* stage3 = dynamic_cast<Stage3*>(currentScene);
+                    if (stage3->IsDoorOpen())
+                        objectPacket->openthedoor = true;
+                    else
+                        objectPacket->openthedoor = false;
+
+                    if(stage3->IsSwitchPressed())
+                        objectPacket->switchpress = true;
+                    else 
+                        objectPacket->switchpress = false;
+                }
+                EnterCriticalSection(&SendQueueCS);               
+                SendQueue.push(std::move(objectPacket));                
+                LeaveCriticalSection(&SendQueueCS);
+            }
+        }
+    }
+
+    // 종료 처리
+    for (int i = 0; i < clientCount; ++i) {
+        if (communicationThreads[i]) {
+            CloseHandle(communicationThreads[i]);
+        }
+    }
+
+    DeleteCriticalSection(&RecvQueueCS);
+    DeleteCriticalSection(&SendQueueCS);
+
+    for (int i = 0; i < clientCount; ++i) {
+        if (clientSockets[i] != INVALID_SOCKET) {
+            closesocket(clientSockets[i]);
+        }
+    }
+
     closesocket(serverSocket);
     WSACleanup();
 
     return 0;
+}
+
+
+void SendPlayerID(SOCKET clientSocket, uint32_t playerID) {
+    PlayerIDResponsePacket idResponse;
+    idResponse.m_playerID = playerID;
+    idResponse.isSuccess = true;
+
+    // Player ID 패킷 전송
+    int sendResult = send(clientSocket, reinterpret_cast<char*>(&idResponse), sizeof(PlayerIDResponsePacket), 0);
+    if (sendResult == SOCKET_ERROR) {
+        std::cerr << "Failed to send Player ID packet: " << WSAGetLastError() << "\n";
+    }
 }

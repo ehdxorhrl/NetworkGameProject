@@ -15,6 +15,7 @@ public:
 
 public:
 	void InitializeMap();
+	bool CheckCollisionWithBlock(CPlayer* player, int blockType);
 	void TransitionToNextMap(CPlayer* player);
 	int(*GetMapData(int mapID))[8] { return maps[mapID]; }
 	int GetCurrentMapID() const { return currentMapID; }

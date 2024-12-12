@@ -13,6 +13,7 @@ void CPlayer::Init() {
     size = 50;
     speed = 350;
     stageNum = 0;
+    switchTriggered = false;
 }
 
 void CPlayer::Update() {
@@ -35,9 +36,8 @@ void CPlayer::Update() {
         deltaTime = serverDeltaTime;
     }
 
-    // 중력 처리
-    pos.y += jumpVelocity * deltaTime; // 점프 속도 적용
-    jumpVelocity += gravity * deltaTime; // 중력 가속
+    pos.y += jumpVelocity * deltaTime;
+    jumpVelocity += gravity * deltaTime;
 
     // 좌우 이동 속도
     float moveSpeed = 0.0f;

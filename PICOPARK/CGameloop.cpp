@@ -3,6 +3,8 @@
 #include "CPlayer.h"
 #include "ObjectManager.h"
 #include "Stage1.h"
+#include "Stage2.h"
+#include "Stage3.h"
 
 CGameloop::CGameloop() {
     InitializeCriticalSection(&UpdateCS);
@@ -124,7 +126,31 @@ void CGameloop::Update() {
                     Stage1* stage1 = dynamic_cast<Stage1*>(currentScene);
                     stage1->IsDoorOpen();
                 }
+                else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage2)
+                {
+                    Stage2* stage2 = dynamic_cast<Stage2*>(currentScene);
+                    stage2->IsDoorOpen();
+                }
+                else if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3)
+                {
+                    Stage3* stage3 = dynamic_cast<Stage3*>(currentScene);
+                    stage3->IsDoorOpen();
+                }
                 
+            }
+
+            if (objInfo->switchpress) {
+                CScene* currentScene = SceneManager.GetInstance().GetCurrentScene();
+                if (SceneManager::GetInstance().GetSceneType() == SceneType::Stage3) {
+                    Stage3* stage3 = dynamic_cast<Stage3*>(currentScene);
+                    stage3->IsSwitchPressed();
+                }
+
+            }
+
+            if (objInfo->changescene)
+            {
+                SceneManager.ChangeScene();
             }
 
             SceneManager.Update();

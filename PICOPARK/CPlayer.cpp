@@ -69,4 +69,5 @@ void CPlayer::Setinfo(PlayerInfo* _info) {
     stageNum = _info->m_stageNum;
     Movement = _info->m_Movement;
     haskey = _info->m_haskey;
+    size = _info->m_size;
 }

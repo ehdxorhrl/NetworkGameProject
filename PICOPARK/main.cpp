@@ -152,10 +152,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     std::wstring cmdLine(lpCmdLine);
     std::wistringstream cmdStream(cmdLine);
     std::wstring ip;
-    int port = 9000;
+    int port = 6112;
     if (!(cmdStream >> ip >> port)) {
         ip = L"127.0.0.1";
-        port = 9000;
+        port = 6112;
     }
 
     // 소켓 연결

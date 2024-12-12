@@ -77,6 +77,27 @@ public:
 	}
 	void Sethaskey(bool _flag) { haskey = _flag; }
 	bool Gethaskey() {return haskey;}
+	float GetjumpVelocity() {
+		return jumpVelocity;
+	}
+	void SetjumpVelocity(int _num) {
+		jumpVelocity = _num;
+	}
+
+	int Getsize() { return size; }
+
+	void IncreaseSize() { size += 10; }
+	bool IsSwitchTriggered() const { return switchTriggered; }
+	void SetSwitchTriggered(bool triggered) { switchTriggered = triggered; }
+
+	RECT GetBoundingBox() {
+		RECT boundingBox;
+		boundingBox.left = static_cast<int>(pos.x - size / 2);
+		boundingBox.top = static_cast<int>(pos.y - size / 2);
+		boundingBox.right = static_cast<int>(pos.x + size / 2);
+		boundingBox.bottom = static_cast<int>(pos.y + size / 2);
+		return boundingBox;
+	}
 private:
 	PlayerType Ptype = PlayerType::None;
 	PlayerState Pstate = PlayerState::Idle;
@@ -93,4 +114,5 @@ private:
 	uint32_t playerID;
 	KT input;
 	uint64_t remainingInputTime = 0;
+	bool switchTriggered = false;
 };

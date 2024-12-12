@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "CScene.h"
 #include "LoadingScene.h"    // LoadingScene 클래스 헤더 파일
+#include "EndingScene.h"
 #include "Stage1.h"
 #include "Stage2.h"
 #include "Stage3.h"
@@ -53,7 +54,10 @@ void SceneManager::ChangeScene()
 		nScene = new Stage3();
 		nSceneType = SceneType::Stage3;
 		break;
-
+	case SceneType::Stage3:
+		nScene = new EndingScene();
+		nSceneType = SceneType::Ending;
+		break;
 	}
 
 	if (scene) {

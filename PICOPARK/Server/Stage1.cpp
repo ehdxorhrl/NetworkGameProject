@@ -11,6 +11,8 @@ Stage1::~Stage1()
 }
 void Stage1::Init()
 {
+    ObjectManager::GetInstance().Clear();
+
     InitializeMap();
 
     // 플레이어 추가
@@ -30,6 +32,16 @@ void Stage1::Init()
 
 void Stage1::Update()
 {
+    CPlayer* players[2] = {
+        ObjectManager::GetInstance().GetPlayerByID(0),
+        ObjectManager::GetInstance().GetPlayerByID(1)
+    };
+
+    if (players[0]->GetKT() == KT::R || players[1]->GetKT() == KT::R) {
+        Init();
+        return;
+    }
+
     bool clearstage = true;
     for (int i = 0; i < 2; i++) {
         CPlayer* player = ObjectManager::GetInstance().GetPlayerByID(i); // 플레이어 객체 가져오기
@@ -112,7 +124,7 @@ void Stage1::InitializeMap() {
         {2, 2, 2, 0, 2, 0, 2, 2},
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
-        {2, 2, 0, 2, 0, 0, 2, 2}
+        {2, 2, 2, 2, 2, 2, 2, 2}
     };
 
     // 1-2 맵 데이터 설정

@@ -18,9 +18,11 @@ public:
 	int(*GetMapData(int mapID))[8] { return maps[mapID]; }
 	int GetCurrentMapID() const { return currentMapID; }
 	bool IsDoorOpen() { return openDoor; }
+	bool IsSwitchPressed() { return switchpress; }
 private:
 	int currentMapID;
 	int maps[3][8][8]{};
 	bool openDoor = false;
+	bool switchpress = false;
 };
 

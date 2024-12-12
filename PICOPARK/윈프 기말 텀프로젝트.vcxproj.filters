@@ -18,6 +18,8 @@
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="CBullet.cpp" />
     <ClCompile Include="..\Client\client.cpp" />
+    <ClCompile Include="Stage2.cpp" />
+    <ClCompile Include="Stage3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CGameloop.h" />
@@ -37,6 +39,8 @@
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="CBullet.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="Stage2.h" />
+    <ClInclude Include="Stage3.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

@@ -38,6 +38,8 @@ struct PlayerIDResponsePacket : BasePacket {
 struct ObjectInfo_Packet : BasePacket {
     PlayerInfo m_player[2];
     bool openthedoor;
+    bool switchpress;
+    bool changescene;
     ObjectInfo_Packet() { packetType = 13; }
 };
 
