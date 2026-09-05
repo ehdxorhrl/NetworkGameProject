@@ -18,7 +18,7 @@ HANDLE hServerSignalThread = NULL;  // 서버 신호 대기 스레드 핸들
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 // Communication 스레드 함수 - 수신 데이터를 바로 처리
-DWORD WINAPI CommunicationThreadFunc(LPVOID lpParam) {
+DWORD WINAPI CommunicationThread(LPVOID lpParam) {
     char buffer[BUFFER_SIZE];
 
     while (true) {
@@ -152,10 +152,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     std::wstring cmdLine(lpCmdLine);
     std::wistringstream cmdStream(cmdLine);
     std::wstring ip;
-    int port = 6112;
+    int port = 9000;
     if (!(cmdStream >> ip >> port)) {
         ip = L"127.0.0.1";
-        port = 6112;
+        port = 9000;
     }
 
     // 소켓 연결
@@ -167,7 +167,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     hCommThread = CreateThread(
         NULL, 0,
-        CommunicationThreadFunc,
+        CommunicationThread,
         NULL, 0, NULL
     );
 

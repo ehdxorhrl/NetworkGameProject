@@ -11,12 +11,11 @@
 #include "Stage2.h"
 #include "Stage3.h"
 
-
 #pragma comment(lib, "ws2_32.lib")
 
-#define SERVER_PORT 6112
-#define MAX_CLIENTS 2
-#define BUFFER_SIZE 512
+const int SERVER_PORT = 9000;
+const int MAX_CLIENTS = 2;
+const int BUFFER_SIZE = 512;
 
 CGameloop loop;
 
@@ -70,9 +69,6 @@ DWORD WINAPI CommunicationThread(LPVOID lpParam) {
                     int sendResult = send(clientSockets[i], reinterpret_cast<char*>(sendPacket.get()), sizeof(ObjectInfo_Packet), 0);
                     if (sendResult == SOCKET_ERROR) {
                         std::cerr << "Failed to send packet to Client ID " << i << ": " << WSAGetLastError() << "\n";
-                    }
-                    else {
-                        std::cout << "Packet sent to Client ID " << i << "\n";
                     }
                 }
             }
@@ -159,7 +155,7 @@ int main() {
 
     // 패킷 전송 루프
     auto lastUpdate = std::chrono::high_resolution_clock::now();
-    const std::chrono::milliseconds updateInterval(16); // 초당 60fps
+    const std::chrono::milliseconds updateInterval(17); // 초당 약 60fps
 
     while (true) {
         auto now = std::chrono::high_resolution_clock::now();
